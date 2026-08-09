@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-docinhos
+    environment:
+      POSTGRES_DB: docinhos
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  backend:
+    build: .
+    container_name: backend-docinhos
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/docinhos
+      DB_USERNAME: user
+      DB_PASSWORD: password
+volumes:
+  postgres-data:
