@@ -9,3 +9,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
     database-platform: org.hibernate.dialect.H2Dialect
+
+  web:
+    cors:
+      allowed-origins: test-web-api
