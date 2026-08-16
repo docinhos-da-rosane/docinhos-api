@@ -17,4 +17,11 @@ spring:
         format_sql: true
   web:
     cors:
-      allowed-origins: ${WEB_API:http://localhost:3000}
+      allowed-origins: ${WEB_API:http://localhost:5173}
+
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origins: ${WEB_API:http://localhost:5173}
+        allowed-methods: OPTIONS, GET, POST
