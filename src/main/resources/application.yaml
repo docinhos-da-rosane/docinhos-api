@@ -19,6 +19,11 @@ spring:
     cors:
       allowed-origins: ${WEB_API:http://localhost:5173}
 
+  security:
+    jwt:
+      secret: ${JWT_SECRET:u4uLv6jiw9nqZbx4a8pp57VfO/+Winj9IV8EMN8LBBQ=}
+      expiration: 3600000
+
 management:
   endpoints:
     web:
