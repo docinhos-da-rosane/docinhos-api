@@ -13,9 +13,10 @@ public class UsuarioDetailsServiceImpl implements UserDetailsService {
   private final UsuarioRepository usuarioRepository;
 
   @Override
-  public UsuarioSecurity loadUserByUsername(String username) {
-    return usuarioRepository.findByEmail(username)
-      .map(UsuarioSecurity::new)
-      .orElseThrow(() -> new NaoEncontradoException("Usuário não encontrado"));
+  public SecurityUsuario loadUserByUsername(String username) {
+    return usuarioRepository
+        .findByEmail(username)
+        .map(SecurityUsuario::new)
+        .orElseThrow(() -> new NaoEncontradoException("Usuário não encontrado"));
   }
 }

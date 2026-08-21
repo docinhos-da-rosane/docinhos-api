@@ -6,9 +6,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @OpenAPIDefinition(
-  info =
-  @Info(
-    title = "Docinhos API",
-    version = "1.0",
-    summary = "API para consulta e gerenciamento do catálogo de docinhos."))
+    info =
+        @Info(
+            title = "Docinhos API",
+            version = "1.0",
+            summary = "API para consulta e gerenciamento do catálogo de docinhos."))
 public class SwaggerConfig {}

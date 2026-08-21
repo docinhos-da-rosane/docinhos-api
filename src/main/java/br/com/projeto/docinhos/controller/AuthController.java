@@ -17,22 +17,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/auth")
 public interface AuthController {
 
-  @Operation(summary = "Autenticar usuário", description = "Realiza a autenticação do usuário e retorna um token JWT.")
+  @Operation(
+      summary = "Autenticar usuário",
+      description = "Realiza a autenticação do usuário e retorna um token JWT.")
   @ApiResponse(
-    responseCode = "200",
-    description = "Autenticação realizada com sucesso",
-    content = @Content(schema = @Schema(implementation = AuthResponse.class))
-  )
+      responseCode = "200",
+      description = "Autenticação realizada com sucesso",
+      content = @Content(schema = @Schema(implementation = AuthResponse.class)))
   @ApiResponse(
-    responseCode = "400",
-    description = "Requisição inválida",
-    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-  )
+      responseCode = "400",
+      description = "Requisição inválida",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   @ApiResponse(
-    responseCode = "401",
-    description = "Credenciais inválidas",
-    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
-  )
+      responseCode = "401",
+      description = "Credenciais inválidas",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   @PostMapping("/login")
   AuthResponse logar(@Valid @RequestBody AuthRequest request);
 }
