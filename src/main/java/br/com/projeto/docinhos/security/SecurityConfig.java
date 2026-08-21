@@ -1,5 +1,6 @@
 package br.com.projeto.docinhos.security;
 
+import jakarta.servlet.DispatcherType;
 import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,7 @@ public class SecurityConfig {
             exception -> exception.authenticationEntryPoint(authenticationEntryPoint))
         .authorizeHttpRequests(
             req -> {
+              req.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
               req.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
               req.anyRequest().authenticated();
             })
