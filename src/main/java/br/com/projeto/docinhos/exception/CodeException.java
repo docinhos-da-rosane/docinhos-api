@@ -10,4 +10,9 @@ public class CodeException extends RuntimeException {
     super(message);
     this.codeError = codeError;
   }
+
+  public CodeException(CodeError codeError, String message, Throwable cause) {
+    super(message, cause);
+    this.codeError = codeError;
+  }
 }
