@@ -1,7 +1,9 @@
 package br.com.projeto.docinhos.exception;
 
 import br.com.projeto.docinhos.enums.CodeError;
+import lombok.Getter;
 
+@Getter
 public class CodeException extends RuntimeException {
 
   private CodeError codeError;
