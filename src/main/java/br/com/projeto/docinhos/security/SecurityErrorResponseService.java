@@ -5,7 +5,6 @@ import br.com.projeto.docinhos.enums.CodeError;
 import br.com.projeto.docinhos.exception.ErroInternoException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -54,7 +53,7 @@ public class SecurityErrorResponseService {
 
     try {
       objectMapper.writeValue(response.getWriter(), error);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new ErroInternoException("Erro ao escrever a resposta de erro", e);
     }
   }

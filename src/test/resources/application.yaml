@@ -13,3 +13,11 @@ spring:
   web:
     cors:
       allowed-origins: test-web-api
+
+  security:
+    jwt:
+      secret: u4uLv6jiw9nqZbx4a8pp57VfO/+Winj9IV8EMN8LBBQ=
+      expiration: 3600000
+
+  flyway:
+    enabled: false
