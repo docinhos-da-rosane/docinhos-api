@@ -9,6 +9,12 @@ O projeto tem como objetivo centralizar as informações do negócio em uma plat
 
 <br>
 
+🔗 **Aplicação publicada:** [Docinhos API Swagger](https://docinhos-api.onrender.com/swagger-ui/index.html)
+
+*⚠️ A aplicação pode levar alguns segundos para responder na primeira requisição devido ao cold start da plataforma.*
+
+<br>
+
 ## Principais funcionalidades
 
 ### Área administrativa
@@ -31,10 +37,22 @@ O projeto tem como objetivo centralizar as informações do negócio em uma plat
 
 <br>
 
+## Frontend
+
+A API será consumida por uma aplicação web desenvolvida separadamente utilizando **React**.
+
+O frontend será responsável pela vitrine pública e pela interface utilizada pela administradora para gerenciar o catálogo.
+
+> 🔗 Repositório do frontend: [Docinhos App](https://github.com/docinhos-da-rosane/docinhos-app).
+
+<br>
+
 ## Tecnologias utilizadas
 
 - **Backend:** Java 21, Spring Boot e Spring Data JPA
 - **Banco de dados:** PostgreSQL
+- **Segurança:** Spring Security e JWT
+- **Documentação:** Swagger / OpenAPI
 - **Mapeamento:** MapStruct
 - **Testes e qualidade:** JUnit, JaCoCo, Checkstyle e Spotless
 - **Infraestrutura:** Docker
@@ -80,6 +98,18 @@ Após a inicialização, a API estará disponível em:
 ```text
 http://localhost:8080
 ```
+
+<br>
+
+## Documentação da API
+
+A API utiliza Swagger / OpenAPI para disponibilizar uma documentação interativa dos endpoints.
+
+Com a aplicação em execução, a documentação pode ser acessada em:
+
+> [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+
+O Swagger permite consultar os endpoints disponíveis, visualizar os contratos de requisição e resposta e realizar chamadas diretamente pela interface.
 
 <br>
 
@@ -162,18 +192,6 @@ docker compose down
 ```
 
 <br>
-
-
-## Frontend
-
-A API será consumida por uma aplicação web desenvolvida separadamente utilizando **React**.
-
-O frontend será responsável pela vitrine pública e pela interface utilizada pela administradora para gerenciar o catálogo.
-
-> 🔗 Repositório do frontend: 🚧 **Em desenvolvimento**.
-
-<br>
-
 
 <hr>
 
