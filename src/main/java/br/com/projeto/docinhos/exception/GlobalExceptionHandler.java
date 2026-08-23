@@ -28,6 +28,18 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(error);
   }
 
+  @ExceptionHandler(NaoEncontradoException.class)
+  public ResponseEntity<ErrorResponse> handleNaoEncontradoException(
+      NaoEncontradoException exception, HttpServletRequest request) {
+    log.error("Ocorreu um erro de recurso não encontrado: {}", exception.getMessage(), exception);
+
+    ErrorResponse error =
+        new ErrorResponse(
+            exception.getCodeError(), exception.getMessage(), request.getRequestURI());
+
+    return ResponseEntity.status(404).body(error);
+  }
+
   @ExceptionHandler(ErroInternoException.class)
   public ResponseEntity<ErrorResponse> handleErroInternoException(
       ErroInternoException exception, HttpServletRequest request) {

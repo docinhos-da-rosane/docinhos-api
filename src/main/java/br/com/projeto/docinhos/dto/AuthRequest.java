@@ -2,7 +2,9 @@ package br.com.projeto.docinhos.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+import lombok.Builder;
 
+@Builder
 public record AuthRequest(
     @NotBlank(message = "O campo email é obrigatório")
         @Email(message = "O campo email deve ser válido")
