@@ -5,6 +5,7 @@ import br.com.projeto.docinhos.enums.CodeError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +39,19 @@ public class GlobalExceptionHandler {
             exception.getCodeError(), exception.getMessage(), request.getRequestURI());
 
     return ResponseEntity.status(404).body(error);
+  }
+
+  @ExceptionHandler(BadCredentialsException.class)
+  public ResponseEntity<ErrorResponse> handleBadCredentialsException(
+      BadCredentialsException exception, HttpServletRequest request) {
+
+    log.error("Ocorreu um erro de credenciais inválidas: {}", exception.getMessage(), exception);
+
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.CREDENCIAIS_INVALIDAS, exception.getMessage(), request.getRequestURI());
+
+    return ResponseEntity.status(401).body(error);
   }
 
   @ExceptionHandler(ErroInternoException.class)
