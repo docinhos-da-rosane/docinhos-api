@@ -21,8 +21,8 @@ spring:
 
   security:
     jwt:
-      secret: ${JWT_SECRET}
-      expiration: ${JWT_EXPIRATION}
+      secret: ${JWT_SECRET:u4uLv6jiw9nqZbx4a8pp57VfO/+Winj9IV8EMN8LBBQ=}
+      expiration: ${JWT_EXPIRATION:3600000}
 
 management:
   endpoints:

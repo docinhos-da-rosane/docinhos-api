@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,17 +42,27 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(404).body(error);
   }
 
+  @ExceptionHandler(InternalAuthenticationServiceException.class)
+  public ResponseEntity<ErrorResponse> handleInternalAuthenticationServiceException(
+      InternalAuthenticationServiceException exception, HttpServletRequest request) {
+
+    if (exception.getCause() instanceof NaoEncontradoException naoEncontrado) {
+      return handleBadCredentials(naoEncontrado, request);
+    }
+
+    log.error("Ocorreu um erro interno de autenticação: {}", exception.getMessage(), exception);
+
+    ErrorResponse error =
+        new ErrorResponse(CodeError.ERRO_INTERNO, exception.getMessage(), request.getRequestURI());
+
+    return ResponseEntity.internalServerError().body(error);
+  }
+
   @ExceptionHandler(BadCredentialsException.class)
   public ResponseEntity<ErrorResponse> handleBadCredentialsException(
       BadCredentialsException exception, HttpServletRequest request) {
 
-    log.error("Ocorreu um erro de credenciais inválidas: {}", exception.getMessage(), exception);
-
-    ErrorResponse error =
-        new ErrorResponse(
-            CodeError.CREDENCIAIS_INVALIDAS, exception.getMessage(), request.getRequestURI());
-
-    return ResponseEntity.status(401).body(error);
+    return handleBadCredentials(exception, request);
   }
 
   @ExceptionHandler(ErroInternoException.class)
@@ -75,5 +86,16 @@ public class GlobalExceptionHandler {
         new ErrorResponse(CodeError.ERRO_INTERNO, exception.getMessage(), request.getRequestURI());
 
     return ResponseEntity.internalServerError().body(error);
+  }
+
+  private ResponseEntity<ErrorResponse> handleBadCredentials(
+      Exception exception, HttpServletRequest request) {
+    log.error("Ocorreu um erro de credenciais inválidas: {}", exception.getMessage(), exception);
+
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.CREDENCIAIS_INVALIDAS, exception.getMessage(), request.getRequestURI());
+
+    return ResponseEntity.status(401).body(error);
   }
 }
