@@ -49,6 +49,7 @@ public class SecurityConfig {
               req.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll();
               req.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
               req.requestMatchers(HttpMethod.POST, "/auth/login").permitAll();
+              req.requestMatchers(HttpMethod.GET, "/categorias").permitAll();
               req.anyRequest().authenticated();
             })
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
