@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.service.impl;
 
-import br.com.projeto.docinhos.dto.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
 import br.com.projeto.docinhos.exception.NaoEncontradoException;
 import br.com.projeto.docinhos.mapper.CategoriaMapper;
 import br.com.projeto.docinhos.model.Categoria;

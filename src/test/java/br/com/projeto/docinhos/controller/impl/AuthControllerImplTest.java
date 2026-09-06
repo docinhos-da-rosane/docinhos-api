@@ -5,8 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.com.projeto.docinhos.dto.AuthRequest;
-import br.com.projeto.docinhos.dto.AuthResponse;
+import br.com.projeto.docinhos.dto.request.AuthRequest;
+import br.com.projeto.docinhos.dto.response.AuthResponse;
 import br.com.projeto.docinhos.exception.ErroInternoException;
 import br.com.projeto.docinhos.exception.NaoEncontradoException;
 import br.com.projeto.docinhos.mocks.AuthMock;

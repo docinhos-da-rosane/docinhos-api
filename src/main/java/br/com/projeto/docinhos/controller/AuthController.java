@@ -1,8 +1,8 @@
 package br.com.projeto.docinhos.controller;
 
-import br.com.projeto.docinhos.dto.AuthRequest;
-import br.com.projeto.docinhos.dto.AuthResponse;
-import br.com.projeto.docinhos.dto.ErrorResponse;
+import br.com.projeto.docinhos.dto.request.AuthRequest;
+import br.com.projeto.docinhos.dto.response.AuthResponse;
+import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,8 +1,8 @@
 package br.com.projeto.docinhos.controller.impl;
 
 import br.com.projeto.docinhos.controller.AuthController;
-import br.com.projeto.docinhos.dto.AuthRequest;
-import br.com.projeto.docinhos.dto.AuthResponse;
+import br.com.projeto.docinhos.dto.request.AuthRequest;
+import br.com.projeto.docinhos.dto.response.AuthResponse;
 import br.com.projeto.docinhos.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.mocks;
 
-import br.com.projeto.docinhos.dto.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
 import br.com.projeto.docinhos.model.Categoria;
 import java.util.UUID;
 

@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.exception;
 
-import br.com.projeto.docinhos.dto.ErrorResponse;
+import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import br.com.projeto.docinhos.enums.CodeError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
