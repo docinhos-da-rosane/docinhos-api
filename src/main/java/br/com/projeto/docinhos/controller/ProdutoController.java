@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.controller;
 
-import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

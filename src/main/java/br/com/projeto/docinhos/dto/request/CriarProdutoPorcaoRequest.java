@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
+import lombok.Builder;
 
+@Builder
 public record CriarProdutoPorcaoRequest(
     @Schema(description = "Quantidade de unidades da porção", example = "15")
         @NotNull(message = "O campo 'quantidade' é obrigatório")

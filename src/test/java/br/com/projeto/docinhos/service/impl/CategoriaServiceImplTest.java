@@ -41,31 +41,32 @@ class CategoriaServiceImplTest {
       Categoria categoria1 = CategoriaMock.criarCategoriaPadrao();
       Categoria categoria2 = CategoriaMock.criarCategoriaPadrao();
 
-      when(categoriaRepository.findAll()).thenReturn(List.of(categoria1, categoria2));
+      when(categoriaRepository.findAllByOrderByNomeAsc())
+          .thenReturn(List.of(categoria1, categoria2));
 
       List<CategoriaResponse> resposta = service.buscarCategorias();
 
       assertEquals(2, resposta.size());
-      verify(categoriaRepository).findAll();
+      verify(categoriaRepository).findAllByOrderByNomeAsc();
     }
 
     @Test
     void deveRetornarListaVaziaQuandoNaoHouverCategorias() {
-      when(categoriaRepository.findAll()).thenReturn(List.of());
+      when(categoriaRepository.findAllByOrderByNomeAsc()).thenReturn(List.of());
 
       List<CategoriaResponse> resposta = service.buscarCategorias();
 
       assertEquals(0, resposta.size());
-      verify(categoriaRepository).findAll();
+      verify(categoriaRepository).findAllByOrderByNomeAsc();
     }
 
     @Test
     void devePropagarExcecaoQuandoBuscaFalhar() {
-      when(categoriaRepository.findAll())
+      when(categoriaRepository.findAllByOrderByNomeAsc())
           .thenThrow(new RuntimeException("erro ao buscar categorias"));
 
       assertThrows(RuntimeException.class, () -> service.buscarCategorias());
-      verify(categoriaRepository).findAll();
+      verify(categoriaRepository).findAllByOrderByNomeAsc();
     }
   }
 }
