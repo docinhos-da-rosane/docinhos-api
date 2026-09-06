@@ -13,12 +13,14 @@ import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "tb_produtos_porcoes")
 @Getter
 @Setter
+@NoArgsConstructor
 public class ProdutoPorcao {
 
   @Id
