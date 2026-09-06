@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name = "Categorias", description = "Operações para consulta de categorias de produtos")
@@ -23,6 +22,5 @@ public interface CategoriaController {
       responseCode = "500",
       description = "Erro interno ao buscar as categorias",
       content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  @GetMapping
   List<CategoriaResponse> buscarCategorias();
 }
