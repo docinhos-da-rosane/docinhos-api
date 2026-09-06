@@ -7,7 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
-import br.com.projeto.docinhos.dto.ErrorResponse;
+import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import br.com.projeto.docinhos.enums.CodeError;
 import br.com.projeto.docinhos.exception.ErroInternoException;
 import java.io.Writer;

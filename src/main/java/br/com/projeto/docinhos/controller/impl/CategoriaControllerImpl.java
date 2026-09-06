@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.controller.impl;
 
 import br.com.projeto.docinhos.controller.CategoriaController;
-import br.com.projeto.docinhos.dto.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
 import br.com.projeto.docinhos.service.CategoriaService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

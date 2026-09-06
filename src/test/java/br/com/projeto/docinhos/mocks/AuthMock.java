@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.mocks;
 
-import br.com.projeto.docinhos.dto.AuthRequest;
-import br.com.projeto.docinhos.dto.AuthResponse;
+import br.com.projeto.docinhos.dto.request.AuthRequest;
+import br.com.projeto.docinhos.dto.response.AuthResponse;
 
 public class AuthMock {
   public static final String EMAIL_VALIDO = "maria_docinhos@email.com";

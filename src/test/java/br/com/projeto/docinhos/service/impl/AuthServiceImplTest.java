@@ -7,8 +7,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.projeto.docinhos.dto.AuthRequest;
-import br.com.projeto.docinhos.dto.AuthResponse;
+import br.com.projeto.docinhos.dto.request.AuthRequest;
+import br.com.projeto.docinhos.dto.response.AuthResponse;
 import br.com.projeto.docinhos.security.JwtService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

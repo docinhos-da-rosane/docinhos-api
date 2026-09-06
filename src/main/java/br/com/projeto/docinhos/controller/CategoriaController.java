@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.controller;
 
-import br.com.projeto.docinhos.dto.CategoriaResponse;
-import br.com.projeto.docinhos.dto.ErrorResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

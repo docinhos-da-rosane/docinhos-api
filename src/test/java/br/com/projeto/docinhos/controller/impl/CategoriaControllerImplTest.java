@@ -5,7 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.com.projeto.docinhos.dto.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
 import br.com.projeto.docinhos.enums.CodeError;
 import br.com.projeto.docinhos.mocks.CategoriaMock;
 import br.com.projeto.docinhos.security.JwtAuthenticationFilter;

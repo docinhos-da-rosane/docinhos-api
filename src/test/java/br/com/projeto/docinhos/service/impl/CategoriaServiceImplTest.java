@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.projeto.docinhos.dto.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
 import br.com.projeto.docinhos.mapper.CategoriaMapper;
 import br.com.projeto.docinhos.mapper.CategoriaMapperImpl;
 import br.com.projeto.docinhos.mocks.CategoriaMock;

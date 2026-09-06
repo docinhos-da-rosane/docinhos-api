@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.mapper;
 
-import br.com.projeto.docinhos.dto.CategoriaResponse;
+import br.com.projeto.docinhos.dto.response.CategoriaResponse;
 import br.com.projeto.docinhos.model.Categoria;
 import org.mapstruct.Mapper;
 

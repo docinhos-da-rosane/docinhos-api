@@ -1,4 +1,4 @@
-package br.com.projeto.docinhos.dto;
+package br.com.projeto.docinhos.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

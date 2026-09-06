@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.service.impl;
 
-import br.com.projeto.docinhos.dto.AuthRequest;
-import br.com.projeto.docinhos.dto.AuthResponse;
+import br.com.projeto.docinhos.dto.request.AuthRequest;
+import br.com.projeto.docinhos.dto.response.AuthResponse;
 import br.com.projeto.docinhos.security.JwtService;
 import br.com.projeto.docinhos.service.AuthService;
 import java.util.Objects;

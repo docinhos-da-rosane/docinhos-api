@@ -1,4 +1,4 @@
-package br.com.projeto.docinhos.dto;
+package br.com.projeto.docinhos.dto.response;
 
 import br.com.projeto.docinhos.enums.CodeError;
 import io.swagger.v3.oas.annotations.media.Schema;
