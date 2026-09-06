@@ -19,12 +19,14 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "tb_produtos")
 @Getter
 @Setter
+@NoArgsConstructor
 public class Produto {
 
   @Id
