@@ -8,7 +8,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
+import lombok.Builder;
 
+@Builder
 public record CriarProdutoRequest(
     @Schema(description = "Nome do produto", example = "Brigadeiro")
         @NotBlank(message = "O campo 'nome' é obrigatório")
