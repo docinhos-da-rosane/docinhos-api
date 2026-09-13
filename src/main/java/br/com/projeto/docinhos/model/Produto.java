@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -47,6 +48,10 @@ public class Produto {
   @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<ProdutoPorcao> porcoes = new ArrayList<>();
 
+  @Setter(AccessLevel.NONE)
+  @OneToOne(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
+  private ProdutoImagem imagem;
+
   @Column(nullable = false)
   private boolean disponivel = true;
 
@@ -83,19 +88,26 @@ public class Produto {
     }
   }
 
-  public void removerPorcoes(List<ProdutoPorcao> porcoes) {
-    for (ProdutoPorcao porcao : porcoes) {
-      removerPorcao(porcao);
+  public void removerPorcoes() {
+    for (ProdutoPorcao porcao : this.porcoes) {
+      porcao.definirProduto(null);
     }
+
+    this.porcoes.clear();
+  }
+
+  public void adicionarImagem(ProdutoImagem imagem) {
+    this.imagem = imagem;
+    imagem.definirProduto(this);
+  }
+
+  public void removerImagem() {
+    this.imagem.definirProduto(null);
+    this.imagem = null;
   }
 
   private void adicionarPorcao(ProdutoPorcao porcao) {
-    porcoes.add(porcao);
+    this.porcoes.add(porcao);
     porcao.definirProduto(this);
-  }
-
-  private void removerPorcao(ProdutoPorcao porcao) {
-    porcoes.remove(porcao);
-    porcao.definirProduto(null);
   }
 }
