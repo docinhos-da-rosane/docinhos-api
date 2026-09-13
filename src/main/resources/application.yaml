@@ -2,6 +2,9 @@ spring:
   application:
     name: docinhos
 
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/docinhos}
     username: ${DB_USERNAME:user}
@@ -17,16 +20,27 @@ spring:
         format_sql: true
   web:
     cors:
-      allowed-origins: ${WEB_API:http://localhost:5173}
+      allowed-origins: ${WEB_API}
 
   security:
     jwt:
-      secret: ${JWT_SECRET:u4uLv6jiw9nqZbx4a8pp57VfO/+Winj9IV8EMN8LBBQ=}
-      expiration: ${JWT_EXPIRATION:3600000}
+      secret: ${JWT_SECRET}
+      expiration: ${JWT_EXPIRATION}
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+    path: ${CLOUDINARY_PATH}
 
 management:
   endpoints:
     web:
       cors:
-        allowed-origins: ${WEB_API:http://localhost:5173}
+        allowed-origins: ${WEB_API}
         allowed-methods: OPTIONS, GET, POST
