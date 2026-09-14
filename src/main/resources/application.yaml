@@ -36,7 +36,7 @@ spring:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}
     api-key: ${CLOUDINARY_API_KEY}
     api-secret: ${CLOUDINARY_API_SECRET}
-    path: ${CLOUDINARY_PATH}
+
 
 management:
   endpoints:
@@ -44,3 +44,10 @@ management:
       cors:
         allowed-origins: ${WEB_API}
         allowed-methods: OPTIONS, GET, POST
+
+app:
+  imagem:
+    caminho: ${IMAGEM_PATH}
+    tipos-permitidos:
+      - image/jpeg
+      - image/png

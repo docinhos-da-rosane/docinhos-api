@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.integration.image.cloudinary;
 
 import br.com.projeto.docinhos.exception.ErroInternoException;
-import br.com.projeto.docinhos.integration.image.ImageStorage;
+import br.com.projeto.docinhos.integration.image.ImagemStorage;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CloudinaryStorage implements ImageStorage {
+public class CloudinaryStorage implements ImagemStorage {
 
   private static final int DIMENSAO_MAXIMA_IMAGEM = 1600;
   private static final String FORMATO_IMAGEM = "jpg";
@@ -24,12 +24,12 @@ public class CloudinaryStorage implements ImageStorage {
   private final Cloudinary cloudinary;
 
   @Override
-  public ImagemArmazenadaResponse armazenar(byte[] arquivo, String caminho) {
+  public ImagemArmazenadaResponse armazenar(byte[] imagem, String caminho) {
     log.info("Iniciando armazenamento de imagem no Cloudinary. caminho: {}", caminho);
 
     try {
       Map<String, Object> uploadParametros = criarParametrosUpload(caminho);
-      Map<?, ?> uploadResultado = cloudinary.uploader().upload(arquivo, uploadParametros);
+      Map<?, ?> uploadResultado = cloudinary.uploader().upload(imagem, uploadParametros);
 
       String publicId = (String) uploadResultado.get("public_id");
       String url = (String) uploadResultado.get("secure_url");
