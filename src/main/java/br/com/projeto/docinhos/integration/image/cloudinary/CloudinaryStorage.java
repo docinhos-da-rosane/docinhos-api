@@ -25,7 +25,7 @@ public class CloudinaryStorage implements ImagemStorage {
 
   @Override
   public ImagemArmazenadaResponse armazenar(byte[] imagem, String caminho) {
-    log.info("Iniciando armazenamento de imagem no Cloudinary. caminho: {}", caminho);
+    log.info("Iniciando armazenamento de imagem no Cloudinary");
 
     try {
       Map<String, Object> uploadParametros = criarParametrosUpload(caminho);
@@ -34,7 +34,7 @@ public class CloudinaryStorage implements ImagemStorage {
       String publicId = (String) uploadResultado.get("public_id");
       String url = (String) uploadResultado.get("secure_url");
 
-      log.info("Imagem armazenada com sucesso no Cloudinary. idArmazenamento: {}", publicId);
+      log.info("Imagem armazenada com sucesso no Cloudinary. idArmazenamento={}", publicId);
 
       return new ImagemArmazenadaResponse(publicId, url);
 
@@ -46,11 +46,11 @@ public class CloudinaryStorage implements ImagemStorage {
 
   @Override
   public void deletar(String idArmazenamento) {
-    log.info("Iniciando exclusão de imagem no Cloudinary. idArmazenamento: {}", idArmazenamento);
+    log.info("Iniciando exclusão de imagem no Cloudinary. idArmazenamento={}", idArmazenamento);
 
     try {
       cloudinary.uploader().destroy(idArmazenamento, ObjectUtils.emptyMap());
-      log.info("Imagem excluída com sucesso do Cloudinary. idArmazenamento: {}", idArmazenamento);
+      log.info("Imagem excluída com sucesso do Cloudinary. idArmazenamento={}", idArmazenamento);
 
     } catch (Exception ex) {
       throw new ErroInternoException(
