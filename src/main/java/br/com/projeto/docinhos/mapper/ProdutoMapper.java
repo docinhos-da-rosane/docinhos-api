@@ -14,7 +14,9 @@ public interface ProdutoMapper {
   @Mapping(target = "id", ignore = true)
   @Mapping(target = "categoria", ignore = true)
   @Mapping(target = "porcoes", ignore = true)
+  @Mapping(target = "imagem", ignore = true)
   Produto toProduto(CriarProdutoRequest request);
 
+  @Mapping(target = "imagemUrl", source = "imagem.url")
   ProdutoResponse toProdutoResponse(Produto produto);
 }

@@ -18,6 +18,8 @@ public record ProdutoResponse(
             example = "Brigadeiro tradicional com chocolate e granulado.")
         String descricao,
     @Schema(description = "Categoria do produto") CategoriaResponse categoria,
+    @Schema(description = "URL da imagem do produto", example = "https://example.com/imagem.jpg")
+        String imagemUrl,
     @Schema(description = "Porções disponíveis para o produto") List<ProdutoPorcaoResponse> porcoes,
     @Schema(description = "Indica se o produto está disponível para encomenda", example = "true")
         boolean disponivel,

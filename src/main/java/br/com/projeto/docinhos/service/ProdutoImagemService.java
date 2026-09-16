@@ -7,4 +7,6 @@ public interface ProdutoImagemService {
   ProdutoImagem armazenar(MultipartFile arquivo);
 
   void deletar(ProdutoImagem produtoImagem);
+
+  void rollback(ProdutoImagem produtoImagem);
 }

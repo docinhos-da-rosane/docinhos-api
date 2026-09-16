@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "Produtos", description = "Operações para gerenciamento de produtos")
 @RequestMapping("/produtos")
@@ -30,5 +31,5 @@ public interface ProdutoController {
       responseCode = "500",
       description = "Erro interno ao cadastrar o produto",
       content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  ProdutoResponse cadastrarProduto(CriarProdutoRequest request);
+  ProdutoResponse cadastrarProduto(MultipartFile imagem, CriarProdutoRequest request);
 }

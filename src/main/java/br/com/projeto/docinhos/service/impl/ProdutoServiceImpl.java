@@ -6,15 +6,18 @@ import br.com.projeto.docinhos.mapper.ProdutoMapper;
 import br.com.projeto.docinhos.mapper.ProdutoPorcaoMapper;
 import br.com.projeto.docinhos.model.Categoria;
 import br.com.projeto.docinhos.model.Produto;
+import br.com.projeto.docinhos.model.ProdutoImagem;
 import br.com.projeto.docinhos.model.ProdutoPorcao;
 import br.com.projeto.docinhos.repository.ProdutoRepository;
 import br.com.projeto.docinhos.service.CategoriaService;
+import br.com.projeto.docinhos.service.ProdutoImagemService;
 import br.com.projeto.docinhos.service.ProdutoService;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -22,30 +25,41 @@ import org.springframework.stereotype.Service;
 public class ProdutoServiceImpl implements ProdutoService {
 
   private final CategoriaService categoriaService;
+  private final ProdutoImagemService produtoImagemService;
   private final ProdutoRepository produtoRepository;
   private final ProdutoMapper produtoMapper;
   private final ProdutoPorcaoMapper produtoPorcaoMapper;
 
   @Override
   @Transactional
-  public ProdutoResponse criarProduto(CriarProdutoRequest request) {
+  public ProdutoResponse criarProduto(MultipartFile imagem, CriarProdutoRequest request) {
     log.info("Iniciando cadastro de produto: nome={}", request.nome());
 
     Categoria categoria = categoriaService.buscarCategoriaPorId(request.categoriaId());
 
-    Produto produto = produtoMapper.toProduto(request);
-    List<ProdutoPorcao> porcoes = produtoPorcaoMapper.toProdutoPorcaoList(request.porcoes());
+    ProdutoImagem produtoImagem = null;
+    try {
+      produtoImagem = produtoImagemService.armazenar(imagem);
 
-    produto.setCategoria(categoria);
-    produto.adicionarPorcoes(porcoes);
+      Produto produto = produtoMapper.toProduto(request);
+      List<ProdutoPorcao> porcoes = produtoPorcaoMapper.toProdutoPorcaoList(request.porcoes());
 
-    Produto produtoSalvo = produtoRepository.save(produto);
+      produto.setCategoria(categoria);
+      produto.adicionarPorcoes(porcoes);
+      produto.adicionarImagem(produtoImagem);
 
-    log.info(
-        "Produto cadastrado com sucesso: produtoId={}, nome={}",
-        produtoSalvo.getId(),
-        produtoSalvo.getNome());
+      Produto produtoSalvo = produtoRepository.save(produto);
 
-    return produtoMapper.toProdutoResponse(produtoSalvo);
+      log.info(
+          "Produto cadastrado com sucesso: produtoId={}, nome={}",
+          produtoSalvo.getId(),
+          produtoSalvo.getNome());
+
+      return produtoMapper.toProdutoResponse(produtoSalvo);
+
+    } catch (Exception e) {
+      produtoImagemService.rollback(produtoImagem);
+      throw e;
+    }
   }
 }
