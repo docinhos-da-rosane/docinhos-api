@@ -119,6 +119,21 @@ class ProdutoControllerImplTest {
     }
 
     @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoSemProduto() throws Exception {
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
+
+      mockMvc.perform(multipart(PRODUTO_URL).file(imagemPart)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoSemImagem() throws Exception {
+      CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      mockMvc.perform(multipart(PRODUTO_URL).file(produtoPart)).andExpect(status().isBadRequest());
+    }
+
+    @Test
     void deveRetornarBadRequestQuandoCadastrarProdutoComImagemMuitoGrande() throws Exception {
       long maxSize = 10 * 1024 * 1024L;
       long tamanhoExcedido = maxSize + 1;
