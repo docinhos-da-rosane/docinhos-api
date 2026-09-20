@@ -12,6 +12,8 @@ import br.com.projeto.docinhos.mocks.CategoriaMock;
 import br.com.projeto.docinhos.model.Categoria;
 import br.com.projeto.docinhos.repository.CategoriaRepository;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -67,6 +69,33 @@ class CategoriaServiceImplTest {
 
       assertThrows(RuntimeException.class, () -> service.buscarCategorias());
       verify(categoriaRepository).findAllByOrderByNomeAsc();
+    }
+  }
+
+  @Nested
+  class BuscarCategoriaPorIdTests {
+
+    @Test
+    void deveBuscarCategoriaPorIdComSucesso() {
+      Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+
+      when(categoriaRepository.findById(categoria.getId())).thenReturn(Optional.of(categoria));
+
+      Categoria response = service.buscarCategoriaPorId(categoria.getId());
+
+      assertEquals(categoria.getId(), response.getId());
+      assertEquals(categoria.getNome(), response.getNome());
+      verify(categoriaRepository).findById(categoria.getId());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoCategoriaNaoEncontrada() {
+      UUID categoriaId = UUID.randomUUID();
+
+      when(categoriaRepository.findById(categoriaId)).thenReturn(Optional.empty());
+
+      assertThrows(RuntimeException.class, () -> service.buscarCategoriaPorId(categoriaId));
+      verify(categoriaRepository).findById(categoriaId);
     }
   }
 }

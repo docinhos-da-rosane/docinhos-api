@@ -60,6 +60,7 @@ public class ProdutoImagemServiceImpl implements ProdutoImagemService {
           "Rollback: falha ao remover imagem do produto. idArmazenamento={}. Erro: {}",
           produtoImagem.getIdArmazenamento(),
           cleanupEx.getMessage());
+      throw new ErroInternoException("Falha ao executar rollback da imagem do produto", cleanupEx);
     }
 
     log.info(
