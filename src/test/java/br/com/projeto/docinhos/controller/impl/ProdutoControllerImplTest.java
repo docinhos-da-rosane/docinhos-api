@@ -1,5 +1,7 @@
 package br.com.projeto.docinhos.controller.impl;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -28,6 +30,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(
@@ -55,12 +58,13 @@ class ProdutoControllerImplTest {
       CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
       ProdutoResponse response = ProdutoMock.criarProdutoResponsePadrao();
 
-      when(produtoService.criarProduto(request)).thenReturn(response);
+      when(produtoService.criarProduto(any(), eq(request))).thenReturn(response);
 
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
       MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
 
       mockMvc
-          .perform((multipart(PRODUTO_URL).file(produtoPart)))
+          .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
           .andExpect(status().isCreated())
           .andExpect(content().json(jsonToString(response)));
     }
@@ -69,10 +73,11 @@ class ProdutoControllerImplTest {
     @MethodSource("requestInvalidoProvider")
     void deveRetornarBadRequestQuandoCadastrarProdutoComDadosInvalidos(
         CriarProdutoRequest requestInvalido) throws Exception {
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
       MockMultipartFile produtoPart = criarProdutoPart(jsonToString(requestInvalido));
 
       mockMvc
-          .perform((multipart(PRODUTO_URL).file(produtoPart)))
+          .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
           .andExpect(status().isBadRequest());
     }
 
@@ -111,6 +116,40 @@ class ProdutoControllerImplTest {
                           .preco(new BigDecimal("-1.00"))
                           .build()))
               .build());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoSemProduto() throws Exception {
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
+
+      mockMvc.perform(multipart(PRODUTO_URL).file(imagemPart)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoSemImagem() throws Exception {
+      CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      mockMvc.perform(multipart(PRODUTO_URL).file(produtoPart)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoComImagemMuitoGrande() throws Exception {
+      long maxSize = 10 * 1024 * 1024L;
+      long tamanhoExcedido = maxSize + 1;
+
+      CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      MockMultipartFile imagemPart =
+          new MockMultipartFile(
+              "imagem", "produto.png", MediaType.IMAGE_PNG_VALUE, new byte[(int) tamanhoExcedido]);
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      when(produtoService.criarProduto(imagemPart, request))
+          .thenThrow(new MaxUploadSizeExceededException(maxSize));
+
+      mockMvc
+          .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
+          .andExpect(status().isBadRequest());
     }
   }
 

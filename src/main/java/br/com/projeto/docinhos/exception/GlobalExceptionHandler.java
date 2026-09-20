@@ -11,6 +11,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @Slf4j
 @RestControllerAdvice
@@ -40,6 +42,37 @@ public class GlobalExceptionHandler {
             exception.getCodeError(), exception.getMessage(), request.getRequestURI());
 
     return ResponseEntity.status(404).body(error);
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<ErrorResponse> handleSizeLimitExceededException(
+      MaxUploadSizeExceededException exception, HttpServletRequest request) {
+    log.error("Ocorreu um erro de limite de tamanho: {}", exception.getMessage(), exception);
+
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.DADOS_INVALIDOS,
+            "O arquivo deve ter no máximo 10MB",
+            request.getRequestURI());
+
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  @ExceptionHandler(MissingServletRequestPartException.class)
+  public ResponseEntity<ErrorResponse> handleMissingServletRequestPartException(
+      MissingServletRequestPartException exception, HttpServletRequest request) {
+
+    log.error(
+        "Ocorreu um erro de parte da requisição ausente: {}", exception.getMessage(), exception);
+    String parteNome = exception.getRequestPartName();
+
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.DADOS_INVALIDOS,
+            "A parte da requisição " + parteNome + " é obrigatória",
+            request.getRequestURI());
+
+    return ResponseEntity.badRequest().body(error);
   }
 
   @ExceptionHandler(InternalAuthenticationServiceException.class)
@@ -72,7 +105,9 @@ public class GlobalExceptionHandler {
 
     ErrorResponse error =
         new ErrorResponse(
-            exception.getCodeError(), exception.getMessage(), request.getRequestURI());
+            exception.getCodeError(),
+            "Ocorreu um erro interno no servidor",
+            request.getRequestURI());
 
     return ResponseEntity.internalServerError().body(error);
   }
