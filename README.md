@@ -1,3 +1,4 @@
+
 # 🍬 Docinhos API
 
 A **Docinhos API** é uma API REST desenvolvida em **Spring Boot** para gerenciamento do catálogo digital de uma pequena empreendedora do ramo de confeitaria.
@@ -54,8 +55,9 @@ O frontend será responsável pela vitrine pública e pela interface utilizada p
 - **Segurança:** Spring Security e JWT
 - **Documentação:** Swagger / OpenAPI
 - **Mapeamento:** MapStruct
+- **Upload e armazenamento de imagens:** Cloudinary
 - **Testes e qualidade:** JUnit, JaCoCo, Checkstyle e Spotless
-- **Infraestrutura:** Docker
+- **Infraestrutura:** Docker e Docker Compose
 - **Build:** Maven
 
 <br>
@@ -81,13 +83,34 @@ git clone https://github.com/docinhos-da-rosane/docinhos-api.git
 cd docinhos-api
 ```
 
-### 2. Suba o banco de dados
+
+### 2. Configure as variáveis de ambiente
+O projeto utiliza um arquivo `.env` na raiz do repositório para guardar as variáveis de ambiente utilizadas pela aplicação e pelo Docker Compose.
+
+Crie um arquivo chamado `.env` na pasta raiz do projeto com o seguinte conteúdo:
 
 ```bash
-docker compose up -d
+WEB_API=http://localhost:5173
+
+JWT_SECRET=sua_chave_secreta_jwt
+JWT_EXPIRATION=3600000
+
+CLOUDINARY_CLOUD_NAME=seu_cloud_name
+CLOUDINARY_API_KEY=sua_api_key
+CLOUDINARY_API_SECRET=sua_api_secret
+
+IMAGEM_PATH=docinhos/dev/produtos
 ```
 
-### 3. Execute a aplicação
+> **Importante**: o arquivo `.env` não deve ser commitado em repositórios públicos, pois contém segredos e credenciais.
+
+### 3. Suba o banco de dados
+
+```bash
+docker compose up -d postgres
+```
+
+### 4. Execute a aplicação
 
 ```bash
 ./mvnw spring-boot:run
@@ -98,6 +121,20 @@ Após a inicialização, a API estará disponível em:
 ```text
 http://localhost:8080
 ```
+
+<br>
+
+## Armazenamento de imagens com Cloudinary
+A API utiliza o serviço Cloudinary para armazenar e gerenciar imagens dos produtos.
+Esse armazenamento é configurado por meio das variáveis:
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+
+Além disso, a pasta de armazenamento é definida em:
+- `IMAGEM_PATH`
+
+Essas configurações permitem que a aplicação envie imagens para o Cloudinary, obtenha a URL pública e também faça exclusão quando necessário.
 
 <br>
 
