@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @Slf4j
 @RestControllerAdvice
@@ -52,6 +53,23 @@ public class GlobalExceptionHandler {
         new ErrorResponse(
             CodeError.DADOS_INVALIDOS,
             "O arquivo deve ter no máximo 10MB",
+            request.getRequestURI());
+
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  @ExceptionHandler(MissingServletRequestPartException.class)
+  public ResponseEntity<ErrorResponse> handleMissingServletRequestPartException(
+      MissingServletRequestPartException exception, HttpServletRequest request) {
+
+    log.error(
+        "Ocorreu um erro de parte da requisição ausente: {}", exception.getMessage(), exception);
+    String parteNome = exception.getRequestPartName();
+
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.DADOS_INVALIDOS,
+            "A parte da requisição " + parteNome + " é obrigatória",
             request.getRequestURI());
 
     return ResponseEntity.badRequest().body(error);
