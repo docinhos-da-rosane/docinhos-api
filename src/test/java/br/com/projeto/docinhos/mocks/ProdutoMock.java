@@ -4,6 +4,7 @@ import br.com.projeto.docinhos.dto.request.CriarProdutoPorcaoRequest;
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
 import br.com.projeto.docinhos.dto.response.ProdutoPorcaoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
 import br.com.projeto.docinhos.model.Categoria;
 import br.com.projeto.docinhos.model.Produto;
 import br.com.projeto.docinhos.model.ProdutoImagem;
@@ -33,6 +34,16 @@ public class ProdutoMock {
   public static CriarProdutoPorcaoRequest.CriarProdutoPorcaoRequestBuilder
       criarProdutoPorcaoRequest() {
     return CriarProdutoPorcaoRequest.builder().quantidade(10).preco(new BigDecimal("19.99"));
+  }
+
+  public static ProdutoResumoResponse criarProdutoResumoResponsePadrao() {
+    return ProdutoResumoResponse.builder()
+        .id(UUID.randomUUID())
+        .nome("Brigadeiro")
+        .categoria("Tradicional")
+        .imagemMiniaturaUrl("https://res.cloudinary.com/demo/image/upload/c_lfill/produto.jpg")
+        .disponivel(true)
+        .build();
   }
 
   public static ProdutoResponse criarProdutoResponsePadrao() {

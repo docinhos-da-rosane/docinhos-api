@@ -2,13 +2,17 @@ package br.com.projeto.docinhos.controller;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
 import br.com.projeto.docinhos.dto.response.ErrorResponse;
+import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 @Tag(name = "Produtos", description = "Operações para gerenciamento de produtos")
@@ -32,4 +36,21 @@ public interface ProdutoController {
       description = "Erro interno ao cadastrar o produto",
       content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   ProdutoResponse cadastrarProduto(MultipartFile imagem, CriarProdutoRequest request);
+
+  @Operation(summary = "Listar produtos", description = "Retorna a lista paginada de produtos.")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Lista de produtos retornada com sucesso",
+      content = @Content(schema = @Schema(implementation = PageResponse.class)))
+  @ApiResponse(
+      responseCode = "500",
+      description = "Erro interno ao consultar os produtos",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  PageResponse<ProdutoResumoResponse> listarProdutos(
+      @Parameter(description = "Índice da página iniciado em zero", example = "0")
+          @RequestParam(defaultValue = "0")
+          int page,
+      @Parameter(description = "Quantidade de itens por página", example = "6")
+          @RequestParam(defaultValue = "6")
+          int size);
 }

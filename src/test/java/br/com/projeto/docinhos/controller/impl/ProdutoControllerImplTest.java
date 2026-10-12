@@ -3,15 +3,19 @@ package br.com.projeto.docinhos.controller.impl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
 import br.com.projeto.docinhos.mocks.ProdutoMock;
 import br.com.projeto.docinhos.security.JwtAuthenticationFilter;
 import br.com.projeto.docinhos.service.ProdutoService;
+import br.com.projeto.docinhos.utils.TestUtils;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -150,6 +154,36 @@ class ProdutoControllerImplTest {
       mockMvc
           .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
           .andExpect(status().isBadRequest());
+    }
+  }
+
+  @Nested
+  class ListarProdutosTests {
+
+    @Test
+    void deveRetornarListaPaginadaComSucesso() throws Exception {
+      ProdutoResumoResponse produto = ProdutoMock.criarProdutoResumoResponsePadrao();
+
+      PageResponse<ProdutoResumoResponse> response =
+          new PageResponse<>(List.of(produto), 0, 6, 1, 1);
+      when(produtoService.listarProdutos(0, 6)).thenReturn(response);
+
+      mockMvc
+          .perform(get(PRODUTO_URL).queryParam("page", "0").queryParam("size", "6"))
+          .andExpect(status().isOk())
+          .andExpect(content().json(TestUtils.toJson(response)));
+    }
+
+    @Test
+    void deveRetornarListaVaziaComSucesso() throws Exception {
+      PageResponse<ProdutoResumoResponse> response = new PageResponse<>(List.of(), 0, 6, 0, 0);
+
+      when(produtoService.listarProdutos(0, 6)).thenReturn(response);
+
+      mockMvc
+          .perform(get(PRODUTO_URL).queryParam("page", "0").queryParam("size", "6"))
+          .andExpect(status().isOk())
+          .andExpect(content().json(TestUtils.toJson(response)));
     }
   }
 

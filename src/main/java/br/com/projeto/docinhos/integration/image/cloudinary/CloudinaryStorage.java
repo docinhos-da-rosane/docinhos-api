@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 public class CloudinaryStorage implements ImagemStorage {
 
   private static final int DIMENSAO_MAXIMA_IMAGEM = 1600;
+  private static final int DIMENSAO_MINIATURA = 128;
   private static final String FORMATO_IMAGEM = "jpg";
   private static final String QUALIDADE_IMAGEM = "auto";
 
@@ -42,6 +43,15 @@ public class CloudinaryStorage implements ImagemStorage {
       throw new ErroInternoException(
           "Erro ao armazenar a imagem no Cloudinary: " + ex.getMessage(), ex);
     }
+  }
+
+  @Override
+  public String gerarUrlMiniatura(String idArmazenamento) {
+    return cloudinary
+        .url()
+        .transformation(criarTransformacaoMiniatura())
+        .secure(true)
+        .generate(idArmazenamento);
   }
 
   @Override
@@ -74,5 +84,13 @@ public class CloudinaryStorage implements ImagemStorage {
         .crop("limit")
         .fetchFormat(FORMATO_IMAGEM)
         .quality(QUALIDADE_IMAGEM);
+  }
+
+  private Transformation<?> criarTransformacaoMiniatura() {
+    return new Transformation<>()
+        .width(DIMENSAO_MINIATURA)
+        .height(DIMENSAO_MINIATURA)
+        .gravity("center")
+        .crop("lfill");
   }
 }

@@ -2,6 +2,7 @@ package br.com.projeto.docinhos.mapper;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
 import br.com.projeto.docinhos.model.Produto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -15,8 +16,13 @@ public interface ProdutoMapper {
   @Mapping(target = "categoria", ignore = true)
   @Mapping(target = "porcoes", ignore = true)
   @Mapping(target = "imagem", ignore = true)
+  @Mapping(target = "disponivel", ignore = true)
   Produto toProduto(CriarProdutoRequest request);
 
   @Mapping(target = "imagemUrl", source = "imagem.url")
   ProdutoResponse toProdutoResponse(Produto produto);
+
+  @Mapping(target = "categoria", source = "produto.categoria.nome")
+  @Mapping(target = "imagemMiniaturaUrl", source = "imagemMiniaturaUrl")
+  ProdutoResumoResponse toProdutoResumoResponse(Produto produto, String imagemMiniaturaUrl);
 }
