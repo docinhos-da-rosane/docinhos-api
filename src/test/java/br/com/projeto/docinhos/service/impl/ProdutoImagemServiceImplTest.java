@@ -92,6 +92,26 @@ class ProdutoImagemServiceImplTest {
   }
 
   @Nested
+  class GerarUrlMiniaturaTests {
+
+    @Test
+    void deveGerarUrlMiniaturaSemAlterarUrlOriginal() {
+      ProdutoImagem produtoImagem = ProdutoMock.criarProdutoImagemPadrao();
+      String urlOriginal = produtoImagem.getUrl();
+      String urlMiniatura = "https://res.cloudinary.com/demo/image/upload/c_lfill/produto.jpg";
+
+      when(cloudinaryStorage.gerarUrlMiniatura(produtoImagem.getIdArmazenamento()))
+          .thenReturn(urlMiniatura);
+
+      String response = produtoImagemService.gerarUrlMiniatura(produtoImagem);
+
+      assertEquals(urlMiniatura, response);
+      assertEquals(urlOriginal, produtoImagem.getUrl());
+      verify(cloudinaryStorage).gerarUrlMiniatura(produtoImagem.getIdArmazenamento());
+    }
+  }
+
+  @Nested
   class RollbackTests {
     @Test
     void deveExecutarRollbackComSucesso() {

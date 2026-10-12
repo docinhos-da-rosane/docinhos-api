@@ -1,7 +1,10 @@
 package br.com.projeto.docinhos.service.impl;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
+import br.com.projeto.docinhos.mapper.PageMapper;
 import br.com.projeto.docinhos.mapper.ProdutoMapper;
 import br.com.projeto.docinhos.mapper.ProdutoPorcaoMapper;
 import br.com.projeto.docinhos.model.Categoria;
@@ -16,6 +19,9 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +35,7 @@ public class ProdutoServiceImpl implements ProdutoService {
   private final ProdutoRepository produtoRepository;
   private final ProdutoMapper produtoMapper;
   private final ProdutoPorcaoMapper produtoPorcaoMapper;
+  private final PageMapper pageMapper;
 
   @Override
   @Transactional
@@ -61,5 +68,21 @@ public class ProdutoServiceImpl implements ProdutoService {
       produtoImagemService.rollback(produtoImagem);
       throw e;
     }
+  }
+
+  @Override
+  public PageResponse<ProdutoResumoResponse> listarProdutos(int page, int size) {
+    Sort ordenacao = Sort.by(Sort.Order.desc("disponivel"), Sort.Order.asc("nome"));
+    PageRequest paginacao = PageRequest.of(page, size, ordenacao);
+
+    Page<ProdutoResumoResponse> produtosResumo =
+        produtoRepository.findAll(paginacao).map(this::toProdutoResumoResponse);
+
+    return pageMapper.toPageResponse(produtosResumo);
+  }
+
+  private ProdutoResumoResponse toProdutoResumoResponse(Produto produto) {
+    String imagemMiniaturaUrl = produtoImagemService.gerarUrlMiniatura(produto.getImagem());
+    return produtoMapper.toProdutoResumoResponse(produto, imagemMiniaturaUrl);
   }
 }

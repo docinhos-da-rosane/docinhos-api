@@ -44,6 +44,11 @@ public class ProdutoImagemServiceImpl implements ProdutoImagemService {
   }
 
   @Override
+  public String gerarUrlMiniatura(ProdutoImagem produtoImagem) {
+    return imagemStorage.gerarUrlMiniatura(produtoImagem.getIdArmazenamento());
+  }
+
+  @Override
   public void rollback(ProdutoImagem produtoImagem) {
     if (isNull(produtoImagem)) {
       return;
