@@ -1,6 +1,7 @@
 package br.com.projeto.docinhos.mapper;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
 import br.com.projeto.docinhos.model.Produto;
@@ -25,4 +26,8 @@ public interface ProdutoMapper {
   @Mapping(target = "categoria", source = "produto.categoria.nome")
   @Mapping(target = "imagemMiniaturaUrl", source = "imagemMiniaturaUrl")
   ProdutoResumoResponse toProdutoResumoResponse(Produto produto, String imagemMiniaturaUrl);
+
+  @Mapping(target = "categoria", source = "produto.categoria.nome")
+  @Mapping(target = "imagemUrl", source = "imagemMediaUrl")
+  ProdutoDetalhadoResponse toProdutoDetalhadoResponse(Produto produto, String imagemMediaUrl);
 }

@@ -3,14 +3,17 @@ package br.com.projeto.docinhos.controller.impl;
 import br.com.projeto.docinhos.controller.ProdutoController;
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
 import br.com.projeto.docinhos.service.ProdutoService;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -36,5 +39,11 @@ public class ProdutoControllerImpl implements ProdutoController {
   @GetMapping
   public PageResponse<ProdutoResumoResponse> listarProdutos(int page, int size) {
     return produtoService.listarProdutos(page, size);
+  }
+
+  @Override
+  @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ProdutoDetalhadoResponse buscarProduto(@PathVariable("id") UUID id) {
+    return produtoService.buscarProduto(id);
   }
 }

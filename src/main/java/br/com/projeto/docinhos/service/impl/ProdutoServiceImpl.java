@@ -2,8 +2,10 @@ package br.com.projeto.docinhos.service.impl;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
+import br.com.projeto.docinhos.exception.NaoEncontradoException;
 import br.com.projeto.docinhos.mapper.PageMapper;
 import br.com.projeto.docinhos.mapper.ProdutoMapper;
 import br.com.projeto.docinhos.mapper.ProdutoPorcaoMapper;
@@ -15,14 +17,15 @@ import br.com.projeto.docinhos.repository.ProdutoRepository;
 import br.com.projeto.docinhos.service.CategoriaService;
 import br.com.projeto.docinhos.service.ProdutoImagemService;
 import br.com.projeto.docinhos.service.ProdutoService;
-import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
@@ -81,8 +84,23 @@ public class ProdutoServiceImpl implements ProdutoService {
     return pageMapper.toPageResponse(produtosResumo);
   }
 
+  @Override
+  public ProdutoDetalhadoResponse buscarProduto(UUID id) {
+    Produto produto =
+        produtoRepository
+            .findProdutoById(id)
+            .orElseThrow(() -> new NaoEncontradoException("Produto não encontrado: id=" + id));
+
+    return toProdutoDetalhadoResponse(produto);
+  }
+
   private ProdutoResumoResponse toProdutoResumoResponse(Produto produto) {
     String imagemMiniaturaUrl = produtoImagemService.gerarUrlMiniatura(produto.getImagem());
     return produtoMapper.toProdutoResumoResponse(produto, imagemMiniaturaUrl);
+  }
+
+  private ProdutoDetalhadoResponse toProdutoDetalhadoResponse(Produto produto) {
+    String imagemMediaUrl = produtoImagemService.gerarUrlMedia(produto.getImagem());
+    return produtoMapper.toProdutoDetalhadoResponse(produto, imagemMediaUrl);
   }
 }
