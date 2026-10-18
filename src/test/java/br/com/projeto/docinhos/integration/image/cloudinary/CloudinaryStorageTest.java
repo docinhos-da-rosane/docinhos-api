@@ -115,17 +115,31 @@ class CloudinaryStorageTest {
   class GerarUrlMiniaturaTests {
 
     @Test
-    void deveGerarUrlMiniaturaComRecorteCentralDeAte128Pixels() {
+    void deveGerarUrlMiniaturaComRecorte() {
       Cloudinary cloudinaryConfigurado = new Cloudinary(Map.of("cloud_name", "demo"));
       CloudinaryStorage storage = new CloudinaryStorage(cloudinaryConfigurado);
 
-      String url = storage.gerarUrlMiniatura(ID_ARMAZENAMENTO);
+      String url = storage.gerarUrl(ID_ARMAZENAMENTO, 128, true);
 
       assertTrue(url.startsWith("https://res.cloudinary.com/demo/image/upload/"));
       assertTrue(url.contains("c_lfill"));
       assertTrue(url.contains("w_128"));
       assertTrue(url.contains("h_128"));
       assertTrue(url.contains("g_center"));
+    }
+
+    @Test
+    void deveGerarUrlMediaLimitadaSemRecorte() {
+      Cloudinary cloudinaryConfigurado = new Cloudinary(Map.of("cloud_name", "demo"));
+      CloudinaryStorage storage = new CloudinaryStorage(cloudinaryConfigurado);
+
+      String url = storage.gerarUrl(ID_ARMAZENAMENTO, 1200);
+
+      assertTrue(url.startsWith("https://res.cloudinary.com/demo/image/upload/"));
+      assertTrue(url.contains("c_limit"));
+      assertTrue(url.contains("w_1200"));
+      assertTrue(url.contains("h_1200"));
+      assertTrue(!url.contains("g_center"));
     }
   }
 }

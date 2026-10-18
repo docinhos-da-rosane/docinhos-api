@@ -8,12 +8,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
-import br.com.projeto.docinhos.dto.response.PageResponse;
-import br.com.projeto.docinhos.dto.response.ProdutoResponse;
-import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
+import br.com.projeto.docinhos.dto.response.*;
 import br.com.projeto.docinhos.exception.NaoEncontradoException;
 import br.com.projeto.docinhos.mapper.CategoriaMapper;
 import br.com.projeto.docinhos.mapper.PageMapper;
@@ -24,9 +23,12 @@ import br.com.projeto.docinhos.mocks.ProdutoMock;
 import br.com.projeto.docinhos.model.Categoria;
 import br.com.projeto.docinhos.model.Produto;
 import br.com.projeto.docinhos.model.ProdutoImagem;
+import br.com.projeto.docinhos.model.ProdutoPorcao;
 import br.com.projeto.docinhos.repository.ProdutoRepository;
 import br.com.projeto.docinhos.service.ProdutoImagemService;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -194,6 +196,53 @@ class ProdutoServiceImplTest {
       assertEquals(0, response.totalPages());
       verify(produtoImagemService, never()).gerarUrlMiniatura(any(ProdutoImagem.class));
     }
+  }
+
+  @Nested
+  class BuscarProdutoTests {
+
+    @Test
+    void deveRetornarProdutoComPorcoesOrdenadasEImagemMedia() {
+      ProdutoPorcao porcao50 = ProdutoMock.criarProdutoPorcao(50, "155.00");
+      ProdutoPorcao porcao15 = ProdutoMock.criarProdutoPorcao(15, "55.00");
+
+      Produto produto = criarProduto(List.of(porcao50, porcao15));
+      String imagemUrl = "https://example.com/1200.jpg";
+
+      when(produtoRepository.findProdutoById(produto.getId())).thenReturn(Optional.of(produto));
+      when(produtoImagemService.gerarUrlMedia(produto.getImagem())).thenReturn(imagemUrl);
+
+      ProdutoDetalhadoResponse response = produtoService.buscarProduto(produto.getId());
+
+      assertEquals(imagemUrl, response.imagemUrl());
+      assertEquals(produto.getCategoria().getNome(), response.categoria());
+      assertEquals(
+          List.of(15, 50),
+          response.porcoes().stream().map(ProdutoPorcaoResponse::quantidade).toList());
+
+      verify(produtoRepository).findProdutoById(produto.getId());
+      verify(produtoImagemService).gerarUrlMedia(produto.getImagem());
+    }
+
+    @Test
+    void deveLancarNaoEncontradoSemGerarUrlQuandoProdutoNaoEncontrado() {
+      UUID id = UUID.randomUUID();
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.empty());
+
+      assertThrows(NaoEncontradoException.class, () -> produtoService.buscarProduto(id));
+
+      verifyNoInteractions(produtoImagemService);
+    }
+  }
+
+  private Produto criarProduto(List<ProdutoPorcao> porcoes) {
+    Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+    Produto produto = ProdutoMock.criarProdutoPadrao(categoria);
+
+    produto.removerPorcoes();
+    produto.adicionarPorcoes(porcoes);
+
+    return produto;
   }
 
   private Produto criarProduto(String nome, boolean disponivel, Categoria categoria) {

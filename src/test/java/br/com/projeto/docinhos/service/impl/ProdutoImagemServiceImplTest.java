@@ -95,19 +95,36 @@ class ProdutoImagemServiceImplTest {
   class GerarUrlMiniaturaTests {
 
     @Test
-    void deveGerarUrlMiniaturaSemAlterarUrlOriginal() {
+    void deveGerarUrlMiniaturaComSucesso() {
       ProdutoImagem produtoImagem = ProdutoMock.criarProdutoImagemPadrao();
       String urlOriginal = produtoImagem.getUrl();
       String urlMiniatura = "https://res.cloudinary.com/demo/image/upload/c_lfill/produto.jpg";
 
-      when(cloudinaryStorage.gerarUrlMiniatura(produtoImagem.getIdArmazenamento()))
+      when(cloudinaryStorage.gerarUrl(produtoImagem.getIdArmazenamento(), 128, true))
           .thenReturn(urlMiniatura);
 
       String response = produtoImagemService.gerarUrlMiniatura(produtoImagem);
 
       assertEquals(urlMiniatura, response);
       assertEquals(urlOriginal, produtoImagem.getUrl());
-      verify(cloudinaryStorage).gerarUrlMiniatura(produtoImagem.getIdArmazenamento());
+      verify(cloudinaryStorage).gerarUrl(produtoImagem.getIdArmazenamento(), 128, true);
+    }
+  }
+
+  @Nested
+  class GerarUrlMediaTests {
+
+    @Test
+    void deveGerarUrlMediaComSucesso() {
+      ProdutoImagem produtoImagem = ProdutoMock.criarProdutoImagemPadrao();
+      String urlMedia = "https://res.cloudinary.com/demo/image/upload/c_limit/produto.jpg";
+
+      when(cloudinaryStorage.gerarUrl(produtoImagem.getIdArmazenamento(), 1200))
+          .thenReturn(urlMedia);
+
+      assertEquals(urlMedia, produtoImagemService.gerarUrlMedia(produtoImagem));
+
+      verify(cloudinaryStorage).gerarUrl(produtoImagem.getIdArmazenamento(), 1200);
     }
   }
 
