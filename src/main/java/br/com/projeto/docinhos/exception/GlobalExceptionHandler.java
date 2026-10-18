@@ -11,12 +11,25 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
+      MethodArgumentTypeMismatchException exception, HttpServletRequest request) {
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.DADOS_INVALIDOS,
+            "O parâmetro " + exception.getName() + " possui formato inválido",
+            request.getRequestURI());
+
+    return ResponseEntity.badRequest().body(error);
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
       MethodArgumentNotValidException exception, HttpServletRequest request) {

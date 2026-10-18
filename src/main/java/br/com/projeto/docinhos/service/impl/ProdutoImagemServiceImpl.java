@@ -23,6 +23,9 @@ public class ProdutoImagemServiceImpl implements ProdutoImagemService {
   private final ImagemStorage imagemStorage;
   private final ImagemProperties imagemProperties;
 
+  private static final int DIMENSAO_MINIATURA = 128;
+  private static final int DIMENSAO_MEDIA = 1200;
+
   @Override
   public ProdutoImagem armazenar(MultipartFile arquivo) {
     log.info("Armazenando imagem do produto. nomeOriginal={}", arquivo.getOriginalFilename());
@@ -45,7 +48,12 @@ public class ProdutoImagemServiceImpl implements ProdutoImagemService {
 
   @Override
   public String gerarUrlMiniatura(ProdutoImagem produtoImagem) {
-    return imagemStorage.gerarUrlMiniatura(produtoImagem.getIdArmazenamento());
+    return imagemStorage.gerarUrl(produtoImagem.getIdArmazenamento(), DIMENSAO_MINIATURA, true);
+  }
+
+  @Override
+  public String gerarUrlMedia(ProdutoImagem produtoImagem) {
+    return imagemStorage.gerarUrl(produtoImagem.getIdArmazenamento(), DIMENSAO_MEDIA);
   }
 
   @Override
