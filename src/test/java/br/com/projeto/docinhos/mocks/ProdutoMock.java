@@ -2,6 +2,7 @@ package br.com.projeto.docinhos.mocks;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoPorcaoRequest;
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoPorcaoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
@@ -60,6 +61,18 @@ public class ProdutoMock {
         .build();
   }
 
+  public static ProdutoDetalhadoResponse criarProdutoDetalhadoResponsePadrao() {
+    return ProdutoDetalhadoResponse.builder()
+        .id(UUID.randomUUID())
+        .nome("Brigadeiro")
+        .descricao("Descrição completa")
+        .categoria("Tradicionais")
+        .disponivel(true)
+        .imagemUrl("https://example.com/imagem.jpg")
+        .porcoes(List.of(criarProdutoPorcaoResponsePadrao()))
+        .build();
+  }
+
   public static Produto criarProdutoPadrao(Categoria categoria) {
     Produto produto = new Produto("Produto 1", "Descrição do Produto 1", categoria);
     produto.setId(UUID.randomUUID());
@@ -69,9 +82,13 @@ public class ProdutoMock {
   }
 
   public static ProdutoPorcao criarProdutoPorcaoPadrao() {
-    ProdutoPorcao produtoPorcao = new ProdutoPorcao(10, new BigDecimal("19.99"));
-    produtoPorcao.setId(UUID.randomUUID());
-    return produtoPorcao;
+    return criarProdutoPorcao(10, "19.99");
+  }
+
+  public static ProdutoPorcao criarProdutoPorcao(int quantidade, String preco) {
+    ProdutoPorcao porcao = new ProdutoPorcao(quantidade, new BigDecimal(preco));
+    porcao.setId(UUID.randomUUID());
+    return porcao;
   }
 
   public static ProdutoImagem criarProdutoImagemPadrao() {

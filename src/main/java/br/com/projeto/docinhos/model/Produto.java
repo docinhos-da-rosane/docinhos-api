@@ -16,6 +16,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.AccessLevel;
@@ -104,6 +105,12 @@ public class Produto {
   public void removerImagem() {
     this.imagem.definirProduto(null);
     this.imagem = null;
+  }
+
+  public List<ProdutoPorcao> getPorcoes() {
+    return this.porcoes.stream()
+        .sorted(Comparator.comparingInt(ProdutoPorcao::getQuantidade))
+        .toList();
   }
 
   private void adicionarPorcao(ProdutoPorcao porcao) {

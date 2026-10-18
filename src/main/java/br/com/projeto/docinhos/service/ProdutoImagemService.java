@@ -8,6 +8,8 @@ public interface ProdutoImagemService {
 
   String gerarUrlMiniatura(ProdutoImagem produtoImagem);
 
+  String gerarUrlMedia(ProdutoImagem produtoImagem);
+
   void deletar(ProdutoImagem produtoImagem);
 
   void rollback(ProdutoImagem produtoImagem);
