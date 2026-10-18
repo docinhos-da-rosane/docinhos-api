@@ -2,16 +2,21 @@ package br.com.projeto.docinhos.controller.impl;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
+import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResumoResponse;
+import br.com.projeto.docinhos.enums.CodeError;
+import br.com.projeto.docinhos.exception.NaoEncontradoException;
 import br.com.projeto.docinhos.mocks.ProdutoMock;
 import br.com.projeto.docinhos.security.JwtAuthenticationFilter;
 import br.com.projeto.docinhos.service.ProdutoService;
@@ -19,6 +24,7 @@ import br.com.projeto.docinhos.utils.TestUtils;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,6 +59,7 @@ class ProdutoControllerImplTest {
   @MockitoBean private ProdutoService produtoService;
 
   private static final String PRODUTO_URL = "/produtos";
+  private static final String PRODUTO_ID_URL = PRODUTO_URL + "/{id}";
 
   @Nested
   class CadastrarProdutoTests {
@@ -184,6 +191,49 @@ class ProdutoControllerImplTest {
           .perform(get(PRODUTO_URL).queryParam("page", "0").queryParam("size", "6"))
           .andExpect(status().isOk())
           .andExpect(content().json(TestUtils.toJson(response)));
+    }
+  }
+
+  @Nested
+  class BuscarProdutoTests {
+
+    @Test
+    void deveRetornarDetalhesDoProduto() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      ProdutoDetalhadoResponse response = ProdutoMock.criarProdutoDetalhadoResponsePadrao();
+
+      when(produtoService.buscarProduto(id)).thenReturn(response);
+
+      mockMvc
+          .perform(get(PRODUTO_ID_URL, id))
+          .andExpect(status().isOk())
+          .andExpect(content().json(jsonToString(response)));
+
+      verify(produtoService).buscarProduto(id);
+    }
+
+    @Test
+    void devePropagarExcecaoQuandoBuscarProdutoNaoEncontrado() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      when(produtoService.buscarProduto(id))
+          .thenThrow(new NaoEncontradoException("Produto não encontrado"));
+
+      mockMvc
+          .perform(get(PRODUTO_ID_URL, id))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
+    }
+
+    @Test
+    void devePropagarExcecaoQuandoBuscarProdutoFalhar() throws Exception {
+      String idValido = "id-invalido";
+
+      mockMvc
+          .perform(get(PRODUTO_ID_URL, idValido))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.codeError").value(CodeError.DADOS_INVALIDOS.name()));
     }
   }
 
