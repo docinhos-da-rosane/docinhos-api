@@ -7,6 +7,7 @@ import br.com.projeto.docinhos.exception.ErroInternoException;
 import br.com.projeto.docinhos.exception.RequisicaoInvalidaException;
 import br.com.projeto.docinhos.integration.image.ImagemStorage;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
+import br.com.projeto.docinhos.model.Produto;
 import br.com.projeto.docinhos.model.ProdutoImagem;
 import br.com.projeto.docinhos.service.ProdutoImagemService;
 import java.io.IOException;
@@ -79,6 +80,14 @@ public class ProdutoImagemServiceImpl implements ProdutoImagemService {
     log.info(
         "Rollback: imagem do produto removida com sucesso. idArmazenamento={}",
         produtoImagem.getIdArmazenamento());
+  }
+
+  @Override
+  public void rollback(
+      ProdutoImagem produtoImagemNova, ProdutoImagem produtoImagemAnterior, Produto produto) {
+    rollback(produtoImagemNova);
+    produto.removerImagem();
+    produto.adicionarImagem(produtoImagemAnterior);
   }
 
   @Override

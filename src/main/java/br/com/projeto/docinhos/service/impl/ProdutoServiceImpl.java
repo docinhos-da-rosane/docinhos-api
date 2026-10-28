@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.service.impl;
 
-import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
@@ -18,6 +18,7 @@ import br.com.projeto.docinhos.service.CategoriaService;
 import br.com.projeto.docinhos.service.ProdutoImagemService;
 import br.com.projeto.docinhos.service.ProdutoService;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class ProdutoServiceImpl implements ProdutoService {
 
   @Override
   @Transactional
-  public ProdutoResponse criarProduto(MultipartFile imagem, CriarProdutoRequest request) {
+  public ProdutoResponse criarProduto(MultipartFile imagem, ProdutoRequest request) {
     log.info("Iniciando cadastro de produto: nome={}", request.nome());
 
     Categoria categoria = categoriaService.buscarCategoriaPorId(request.categoriaId());
@@ -86,12 +87,81 @@ public class ProdutoServiceImpl implements ProdutoService {
 
   @Override
   public ProdutoDetalhadoResponse buscarProduto(UUID id) {
-    Produto produto =
-        produtoRepository
-            .findProdutoById(id)
-            .orElseThrow(() -> new NaoEncontradoException("Produto não encontrado: id=" + id));
+    Produto produto = buscarProdutoPorId(id);
 
     return toProdutoDetalhadoResponse(produto);
+  }
+
+  @Override
+  @Transactional
+  public void atualizarProduto(UUID id, MultipartFile imagem, ProdutoRequest request) {
+    log.info("Iniciando atualização de produto: id={}", id);
+
+    Produto produto = buscarProdutoPorId(id);
+    Categoria categoria = categoriaService.buscarCategoriaPorId(request.categoriaId());
+
+    ProdutoImagem produtoImagemNova = null;
+    ProdutoImagem produtoImagemAnterior = null;
+
+    atualizarProdutoComDadosBasicos(request, produto, categoria);
+
+    if (Objects.nonNull(imagem)) {
+      produtoImagemAnterior = produto.getImagem();
+      produtoImagemNova = atualizarProdutoImagem(imagem, produto);
+    }
+
+    produtoRepository.flush();
+
+    if (Objects.nonNull(produtoImagemNova)) {
+      deletarProdutoImagemAnterior(produtoImagemNova, produtoImagemAnterior, produto);
+    }
+
+    log.info(
+        "Produto atualizado com sucesso: produtoId={}, nome={}",
+        produto.getId(),
+        produto.getNome());
+  }
+
+  private void atualizarProdutoComDadosBasicos(
+      ProdutoRequest request, Produto produto, Categoria categoria) {
+    produtoMapper.toProduto(request, produto);
+    produto.setCategoria(categoria);
+
+    List<ProdutoPorcao> porcoes = produtoPorcaoMapper.toProdutoPorcaoList(request.porcoes());
+    produto.removerPorcoes();
+    produto.adicionarPorcoes(porcoes);
+  }
+
+  private ProdutoImagem atualizarProdutoImagem(MultipartFile imagemNova, Produto produto) {
+    ProdutoImagem produtoImagemNova = null;
+
+    try {
+      produtoImagemNova = produtoImagemService.armazenar(imagemNova);
+      produto.removerImagem();
+      produto.adicionarImagem(produtoImagemNova);
+
+    } catch (Exception e) {
+      produtoImagemService.rollback(produtoImagemNova);
+      throw e;
+    }
+
+    return produtoImagemNova;
+  }
+
+  private void deletarProdutoImagemAnterior(
+      ProdutoImagem produtoImagemNova, ProdutoImagem produtoImagemAnterior, Produto produto) {
+    try {
+      produtoImagemService.deletar(produtoImagemAnterior);
+    } catch (Exception ex) {
+      produtoImagemService.rollback(produtoImagemNova, produtoImagemAnterior, produto);
+      produtoRepository.flush();
+    }
+  }
+
+  private Produto buscarProdutoPorId(UUID id) {
+    return produtoRepository
+        .findProdutoById(id)
+        .orElseThrow(() -> new NaoEncontradoException("Produto não encontrado: id=" + id));
   }
 
   private ProdutoResumoResponse toProdutoResumoResponse(Produto produto) {

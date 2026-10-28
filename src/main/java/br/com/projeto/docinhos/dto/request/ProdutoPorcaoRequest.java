@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import lombok.Builder;
 
 @Builder
-public record CriarProdutoPorcaoRequest(
+public record ProdutoPorcaoRequest(
     @Schema(description = "Quantidade de unidades da porção", example = "15")
         @NotNull(message = "O campo 'quantidade' é obrigatório")
         @Positive(message = "O campo 'quantidade' deve ser maior que zero")

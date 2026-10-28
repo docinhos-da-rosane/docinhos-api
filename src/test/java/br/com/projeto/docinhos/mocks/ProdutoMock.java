@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.mocks;
 
-import br.com.projeto.docinhos.dto.request.CriarProdutoPorcaoRequest;
-import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.request.ProdutoPorcaoRequest;
+import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoPorcaoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
@@ -20,21 +20,20 @@ import org.springframework.mock.web.MockMultipartFile;
 
 public class ProdutoMock {
 
-  public static CriarProdutoRequest criarProdutoRequestPadrao() {
+  public static ProdutoRequest criarProdutoRequestPadrao() {
     return criarProdutoRequest().build();
   }
 
-  public static CriarProdutoRequest.CriarProdutoRequestBuilder criarProdutoRequest() {
-    return CriarProdutoRequest.builder()
+  public static ProdutoRequest.ProdutoRequestBuilder criarProdutoRequest() {
+    return ProdutoRequest.builder()
         .nome("Produto")
         .descricao("Descrição do Produto")
         .categoriaId(UUID.randomUUID())
         .porcoes(List.of(criarProdutoPorcaoRequest().build()));
   }
 
-  public static CriarProdutoPorcaoRequest.CriarProdutoPorcaoRequestBuilder
-      criarProdutoPorcaoRequest() {
-    return CriarProdutoPorcaoRequest.builder().quantidade(10).preco(new BigDecimal("19.99"));
+  public static ProdutoPorcaoRequest.ProdutoPorcaoRequestBuilder criarProdutoPorcaoRequest() {
+    return ProdutoPorcaoRequest.builder().quantidade(10).preco(new BigDecimal("19.99"));
   }
 
   public static ProdutoResumoResponse criarProdutoResumoResponsePadrao() {
@@ -66,7 +65,7 @@ public class ProdutoMock {
         .id(UUID.randomUUID())
         .nome("Brigadeiro")
         .descricao("Descrição completa")
-        .categoria("Tradicionais")
+        .categoria(CategoriaMock.criarCategoriaResponsePadrao())
         .disponivel(true)
         .imagemUrl("https://example.com/imagem.jpg")
         .porcoes(List.of(criarProdutoPorcaoResponsePadrao()))
