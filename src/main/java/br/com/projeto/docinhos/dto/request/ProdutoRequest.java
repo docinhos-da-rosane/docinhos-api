@@ -11,7 +11,7 @@ import java.util.UUID;
 import lombok.Builder;
 
 @Builder
-public record CriarProdutoRequest(
+public record ProdutoRequest(
     @Schema(description = "Nome do produto", example = "Brigadeiro")
         @NotBlank(message = "O campo 'nome' é obrigatório")
         @Size(max = 100, message = "O campo 'nome' deve possuir no máximo 100 caracteres")
@@ -30,4 +30,4 @@ public record CriarProdutoRequest(
     @Schema(description = "Porções disponíveis para o produto")
         @NotNull(message = "O campo 'porções' é obrigatório")
         @NotEmpty(message = "O produto deve possuir pelo menos uma porção")
-        List<@Valid CriarProdutoPorcaoRequest> porcoes) {}
+        List<@Valid ProdutoPorcaoRequest> porcoes) {}

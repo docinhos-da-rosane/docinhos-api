@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.controller;
 
-import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,8 @@ public interface ProdutoController {
 
   @Operation(
       summary = "Consultar detalhes do produto",
-      description = "Retorna os detalhes de um produto, incluindo categoria, fotografia e porções.")
+      description = "Retorna os detalhes de um produto, incluindo categoria, fotografia e porções.",
+      security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponse(
       responseCode = "200",
       description = "Detalhes do produto retornados com sucesso",
@@ -51,7 +53,8 @@ public interface ProdutoController {
 
   @Operation(
       summary = "Cadastrar produto",
-      description = "Cadastra um novo produto e suas respectivas porções.")
+      description = "Cadastra um novo produto e suas respectivas porções.",
+      security = @SecurityRequirement(name = "bearerAuth"))
   @ApiResponse(responseCode = "201", description = "Produto cadastrado com sucesso")
   @ApiResponse(
       responseCode = "400",
@@ -65,7 +68,27 @@ public interface ProdutoController {
       responseCode = "500",
       description = "Erro interno ao cadastrar o produto",
       content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  ProdutoResponse cadastrarProduto(MultipartFile imagem, CriarProdutoRequest request);
+  ProdutoResponse cadastrarProduto(MultipartFile imagem, ProdutoRequest request);
+
+  @Operation(
+      summary = "Editar produto",
+      description =
+          "Atualiza os dados e as porções do produto e substitui a fotografia quando enviada.",
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponse(responseCode = "204", description = "Produto atualizado com sucesso")
+  @ApiResponse(
+      responseCode = "400",
+      description = "Identificador, dados ou fotografia inválidos",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  @ApiResponse(
+      responseCode = "404",
+      description = "Produto ou categoria não encontrado",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  @ApiResponse(
+      responseCode = "500",
+      description = "Falha inesperada ao atualizar o produto",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  void atualizarProduto(UUID id, MultipartFile imagem, ProdutoRequest request);
 
   @Operation(summary = "Listar produtos", description = "Retorna a lista paginada de produtos.")
   @ApiResponse(

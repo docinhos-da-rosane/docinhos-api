@@ -13,8 +13,7 @@ public record ProdutoDetalhadoResponse(
         UUID id,
     @Schema(description = "Nome do produto", example = "Brigadeiro Tradicional") String nome,
     @Schema(description = "Descrição completa do produto") String descricao,
-    @Schema(description = "Nome da categoria do produto", example = "Tradicionais")
-        String categoria,
+    @Schema(description = "Categoria do produto") CategoriaResponse categoria,
     @Schema(description = "Indica se o produto está disponível", example = "true")
         boolean disponivel,
     @Schema(description = "URL da imagem limitada a 1200 por 1200 pixels") String imagemUrl,

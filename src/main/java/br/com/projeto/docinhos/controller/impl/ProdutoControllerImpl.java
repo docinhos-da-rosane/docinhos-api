@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.controller.impl;
 
 import br.com.projeto.docinhos.controller.ProdutoController;
-import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoResponse;
@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,8 +32,18 @@ public class ProdutoControllerImpl implements ProdutoController {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ProdutoResponse cadastrarProduto(
       @RequestPart("imagem") MultipartFile imagem,
-      @Valid @RequestPart("produto") CriarProdutoRequest request) {
+      @Valid @RequestPart("produto") ProdutoRequest request) {
     return produtoService.criarProduto(imagem, request);
+  }
+
+  @Override
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public void atualizarProduto(
+      @PathVariable("id") UUID id,
+      @RequestPart(value = "imagem", required = false) MultipartFile imagem,
+      @Valid @RequestPart("produto") ProdutoRequest request) {
+    produtoService.atualizarProduto(id, imagem, request);
   }
 
   @Override
