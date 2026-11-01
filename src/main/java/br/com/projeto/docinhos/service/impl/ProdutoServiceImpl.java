@@ -155,6 +155,7 @@ public class ProdutoServiceImpl implements ProdutoService {
     } catch (Exception ex) {
       produtoImagemService.rollback(produtoImagemNova, produtoImagemAnterior, produto);
       produtoRepository.flush();
+      throw ex;
     }
   }
 
