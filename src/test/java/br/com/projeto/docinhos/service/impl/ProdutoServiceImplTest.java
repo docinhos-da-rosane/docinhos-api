@@ -2,16 +2,18 @@ package br.com.projeto.docinhos.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import br.com.projeto.docinhos.dto.request.CriarProdutoRequest;
+import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.*;
 import br.com.projeto.docinhos.exception.NaoEncontradoException;
 import br.com.projeto.docinhos.mapper.CategoriaMapper;
@@ -85,7 +87,7 @@ class ProdutoServiceImplTest {
 
     @Test
     void deveCriarProdutoComSucesso() {
-      CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
       MockMultipartFile imagem = ProdutoMock.criaMultiPartImagemPadrao();
       Categoria categoria = CategoriaMock.criarCategoriaPadrao();
       ProdutoImagem produtoImagem = ProdutoMock.criarProdutoImagemPadrao();
@@ -108,7 +110,7 @@ class ProdutoServiceImplTest {
 
     @Test
     void deveLancarNaoEncontradoExceptionQuandoCategoriaNaoExistir() {
-      CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
       MockMultipartFile imagem = ProdutoMock.criaMultiPartImagemPadrao();
 
       when(categoriaService.buscarCategoriaPorId(any()))
@@ -123,7 +125,7 @@ class ProdutoServiceImplTest {
 
     @Test
     void deveFazerRollbackQuandoFalharSalvamentoDoProduto() {
-      CriarProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
       MockMultipartFile imagem = ProdutoMock.criaMultiPartImagemPadrao();
       Categoria categoria = CategoriaMock.criarCategoriaPadrao();
       ProdutoImagem produtoImagem = ProdutoMock.criarProdutoImagemPadrao();
@@ -139,6 +141,70 @@ class ProdutoServiceImplTest {
           });
 
       verify(produtoImagemService).rollback(produtoImagem);
+    }
+  }
+
+  @Nested
+  class AtualizarProdutoTests {
+
+    @Test
+    void deveAtualizarDadosSemSubstituirImagemQuandoNaoEnviada() {
+      Produto produto = criarProduto(List.of(ProdutoMock.criarProdutoPorcaoPadrao()));
+      ProdutoImagem imagemAnterior = produto.getImagem();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+
+      when(produtoRepository.findProdutoById(produto.getId())).thenReturn(Optional.of(produto));
+      when(categoriaService.buscarCategoriaPorId(request.categoriaId()))
+          .thenReturn(produto.getCategoria());
+
+      produtoService.atualizarProduto(produto.getId(), null, request);
+
+      assertEquals(request.nome(), produto.getNome());
+      assertSame(imagemAnterior, produto.getImagem());
+      verify(produtoRepository).flush();
+      verifyNoInteractions(produtoImagemService);
+    }
+
+    @Test
+    void deveSubstituirImagemEDeletarAnterior() {
+      Produto produto = criarProduto(List.of(ProdutoMock.criarProdutoPorcaoPadrao()));
+      ProdutoImagem imagemAnterior = produto.getImagem();
+      ProdutoImagem imagemNova = ProdutoMock.criarProdutoImagemPadrao();
+      MockMultipartFile arquivo = ProdutoMock.criaMultiPartImagemPadrao();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+
+      when(produtoRepository.findProdutoById(produto.getId())).thenReturn(Optional.of(produto));
+      when(categoriaService.buscarCategoriaPorId(request.categoriaId()))
+          .thenReturn(produto.getCategoria());
+      when(produtoImagemService.armazenar(arquivo)).thenReturn(imagemNova);
+
+      produtoService.atualizarProduto(produto.getId(), arquivo, request);
+
+      assertSame(imagemNova, produto.getImagem());
+      verify(produtoRepository).flush();
+      verify(produtoImagemService).deletar(imagemAnterior);
+      verify(produtoImagemService, never()).rollback(any());
+    }
+
+    @Test
+    void devePropagarFalhaNaPersistenciaSemDeletarImagemAnterior() {
+      Produto produto = criarProduto(List.of(ProdutoMock.criarProdutoPorcaoPadrao()));
+      ProdutoImagem imagemAnterior = produto.getImagem();
+      ProdutoImagem imagemNova = ProdutoMock.criarProdutoImagemPadrao();
+      MockMultipartFile arquivo = ProdutoMock.criaMultiPartImagemPadrao();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+
+      when(produtoRepository.findProdutoById(produto.getId())).thenReturn(Optional.of(produto));
+      when(categoriaService.buscarCategoriaPorId(request.categoriaId()))
+          .thenReturn(produto.getCategoria());
+      when(produtoImagemService.armazenar(arquivo)).thenReturn(imagemNova);
+      doThrow(new RuntimeException("Erro ao persistir")).when(produtoRepository).flush();
+
+      assertThrows(
+          RuntimeException.class,
+          () -> produtoService.atualizarProduto(produto.getId(), arquivo, request));
+
+      verify(produtoImagemService, never()).deletar(imagemAnterior);
     }
   }
 
@@ -215,7 +281,7 @@ class ProdutoServiceImplTest {
       ProdutoDetalhadoResponse response = produtoService.buscarProduto(produto.getId());
 
       assertEquals(imagemUrl, response.imagemUrl());
-      assertEquals(produto.getCategoria().getNome(), response.categoria());
+      assertEquals(produto.getCategoria().getNome(), response.categoria().nome());
       assertEquals(
           List.of(15, 50),
           response.porcoes().stream().map(ProdutoPorcaoResponse::quantidade).toList());

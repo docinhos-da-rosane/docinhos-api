@@ -16,6 +16,7 @@ import br.com.projeto.docinhos.exception.RequisicaoInvalidaException;
 import br.com.projeto.docinhos.integration.image.cloudinary.CloudinaryStorage;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
 import br.com.projeto.docinhos.mocks.ProdutoMock;
+import br.com.projeto.docinhos.model.Produto;
 import br.com.projeto.docinhos.model.ProdutoImagem;
 import java.io.IOException;
 import java.util.Set;
@@ -154,6 +155,20 @@ class ProdutoImagemServiceImplTest {
           .deletar(produtoImagem.getIdArmazenamento());
 
       assertThrows(ErroInternoException.class, () -> produtoImagemService.rollback(produtoImagem));
+    }
+
+    @Test
+    void deveRestaurarImagemAnteriorDoProdutoDuranteRollback() {
+      ProdutoImagem imagemNova = ProdutoMock.criarProdutoImagemPadrao();
+      ProdutoImagem imagemAnterior =
+          new ProdutoImagem("https://example.com/anterior.jpg", "idAnterior");
+      Produto produto = new Produto();
+      produto.adicionarImagem(imagemNova);
+
+      produtoImagemService.rollback(imagemNova, imagemAnterior, produto);
+
+      assertEquals(imagemAnterior, produto.getImagem());
+      verify(cloudinaryStorage).deletar(imagemNova.getIdArmazenamento());
     }
   }
 
