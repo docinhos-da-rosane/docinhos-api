@@ -1,5 +1,6 @@
 package br.com.projeto.docinhos.service.impl;
 
+import br.com.projeto.docinhos.dto.request.ProdutoDisponibilidadeRequest;
 import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
@@ -120,6 +121,18 @@ public class ProdutoServiceImpl implements ProdutoService {
         "Produto atualizado com sucesso: produtoId={}, nome={}",
         produto.getId(),
         produto.getNome());
+  }
+
+  @Override
+  @Transactional
+  public void alterarDisponibilidade(UUID id, ProdutoDisponibilidadeRequest request) {
+    log.info(
+        "Alterando disponibilidade do produto: id={}, disponivel={}", id, request.disponivel());
+
+    Produto produto = buscarProdutoPorId(id);
+    produto.setDisponivel(request.disponivel());
+
+    produtoRepository.flush();
   }
 
   private void atualizarProdutoComDadosBasicos(

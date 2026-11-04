@@ -1,5 +1,6 @@
 package br.com.projeto.docinhos.service;
 
+import br.com.projeto.docinhos.dto.request.ProdutoDisponibilidadeRequest;
 import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
@@ -16,4 +17,6 @@ public interface ProdutoService {
   ProdutoDetalhadoResponse buscarProduto(UUID id);
 
   void atualizarProduto(UUID id, MultipartFile imagem, ProdutoRequest request);
+
+  void alterarDisponibilidade(UUID id, ProdutoDisponibilidadeRequest request);
 }
