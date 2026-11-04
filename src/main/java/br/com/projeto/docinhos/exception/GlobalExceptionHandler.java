@@ -5,6 +5,7 @@ import br.com.projeto.docinhos.enums.CodeError;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.validation.FieldError;
@@ -25,6 +26,18 @@ public class GlobalExceptionHandler {
         new ErrorResponse(
             CodeError.DADOS_INVALIDOS,
             "O parâmetro " + exception.getName() + " possui formato inválido",
+            request.getRequestURI());
+
+    return ResponseEntity.badRequest().body(error);
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
+      HttpMessageNotReadableException exception, HttpServletRequest request) {
+    ErrorResponse error =
+        new ErrorResponse(
+            CodeError.DADOS_INVALIDOS,
+            "O corpo da requisição está ausente ou possui formato inválido",
             request.getRequestURI());
 
     return ResponseEntity.badRequest().body(error);

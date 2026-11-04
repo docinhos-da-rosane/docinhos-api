@@ -7,10 +7,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.com.projeto.docinhos.dto.request.ProdutoDisponibilidadeRequest;
 import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -61,6 +64,7 @@ class ProdutoControllerImplTest {
 
   private static final String PRODUTO_URL = "/produtos";
   private static final String PRODUTO_ID_URL = PRODUTO_URL + "/{id}";
+  private static final String DISPONIBILIDADE_URL = PRODUTO_ID_URL + "/disponibilidade";
 
   @Nested
   class CadastrarProdutoTests {
@@ -364,6 +368,68 @@ class ProdutoControllerImplTest {
                         multipartRequest.setMethod("PUT");
                         return multipartRequest;
                       }))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
+    }
+  }
+
+  @Nested
+  class AlterarDisponibilidadeTests {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void deveAlterarDisponibilidadeSemConteudo(boolean disponivel) throws Exception {
+      UUID id = UUID.randomUUID();
+      ProdutoDisponibilidadeRequest request = new ProdutoDisponibilidadeRequest(disponivel);
+
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, id)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(jsonToString(request)))
+          .andExpect(status().isNoContent())
+          .andExpect(content().string(""));
+
+      verify(produtoService).alterarDisponibilidade(id, request);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"disponivel\":null}"})
+    void deveRetornarBadRequestQuandoDisponibilidadeAusenteOuNula(String body) throws Exception {
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, UUID.randomUUID())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(body))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCorpoForInvalido() throws Exception {
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, UUID.randomUUID())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{"))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.codeError").value(CodeError.DADOS_INVALIDOS.name()));
+      ;
+    }
+
+    @Test
+    void deveRetornarNotFoundQuandoProdutoNaoExistir() throws Exception {
+      UUID id = UUID.randomUUID();
+      ProdutoDisponibilidadeRequest request = new ProdutoDisponibilidadeRequest(false);
+
+      doThrow(new NaoEncontradoException("Produto não encontrado"))
+          .when(produtoService)
+          .alterarDisponibilidade(eq(id), any());
+
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, id)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(jsonToString(request)))
           .andExpect(status().isNotFound())
           .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
     }
