@@ -1,5 +1,6 @@
 package br.com.projeto.docinhos.controller;
 
+import br.com.projeto.docinhos.dto.request.ProdutoDisponibilidadeRequest;
 import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.ErrorResponse;
 import br.com.projeto.docinhos.dto.response.PageResponse;
@@ -89,6 +90,25 @@ public interface ProdutoController {
       description = "Falha inesperada ao atualizar o produto",
       content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   void atualizarProduto(UUID id, MultipartFile imagem, ProdutoRequest request);
+
+  @Operation(
+      summary = "Alterar disponibilidade do produto",
+      description = "Define a disponibilidade do produto",
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponse(responseCode = "204", description = "Disponibilidade atualizada com sucesso")
+  @ApiResponse(
+      responseCode = "400",
+      description = "Identificador ou corpo inválido",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  @ApiResponse(
+      responseCode = "404",
+      description = "Produto não encontrado",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  @ApiResponse(
+      responseCode = "500",
+      description = "Falha inesperada ao alterar a disponibilidade",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  void alterarDisponibilidade(UUID id, ProdutoDisponibilidadeRequest request);
 
   @Operation(summary = "Listar produtos", description = "Retorna a lista paginada de produtos.")
   @ApiResponse(

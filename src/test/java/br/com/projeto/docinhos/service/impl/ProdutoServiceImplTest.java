@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import br.com.projeto.docinhos.dto.request.ProdutoDisponibilidadeRequest;
 import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.*;
 import br.com.projeto.docinhos.exception.NaoEncontradoException;
@@ -298,6 +299,48 @@ class ProdutoServiceImplTest {
       assertThrows(NaoEncontradoException.class, () -> produtoService.buscarProduto(id));
 
       verifyNoInteractions(produtoImagemService);
+    }
+  }
+
+  @Nested
+  class AlterarDisponibilidadeTests {
+
+    @Test
+    void deveDefinirEstadoSolicitadoComSucesso() {
+      Produto produto = criarProduto(List.of());
+      produto.setDisponivel(false);
+
+      when(produtoRepository.findProdutoById(produto.getId())).thenReturn(Optional.of(produto));
+
+      produtoService.alterarDisponibilidade(
+          produto.getId(), new ProdutoDisponibilidadeRequest(true));
+
+      assertTrue(produto.isDisponivel());
+      verify(produtoRepository).findProdutoById(produto.getId());
+    }
+
+    @Test
+    void deveManterEstadoQuandoSolicitacaoForRepetida() {
+      Produto produto = criarProduto(List.of());
+      produto.setDisponivel(false);
+
+      when(produtoRepository.findProdutoById(produto.getId())).thenReturn(Optional.of(produto));
+
+      produtoService.alterarDisponibilidade(
+          produto.getId(), new ProdutoDisponibilidadeRequest(false));
+
+      assertFalse(produto.isDisponivel());
+    }
+
+    @Test
+    void deveLancarNaoEncontradoSemAlterarProduto() {
+      UUID id = UUID.randomUUID();
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.empty());
+
+      assertThrows(
+          NaoEncontradoException.class,
+          () ->
+              produtoService.alterarDisponibilidade(id, new ProdutoDisponibilidadeRequest(false)));
     }
   }
 

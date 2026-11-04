@@ -1,6 +1,7 @@
 package br.com.projeto.docinhos.controller.impl;
 
 import br.com.projeto.docinhos.controller.ProdutoController;
+import br.com.projeto.docinhos.dto.request.ProdutoDisponibilidadeRequest;
 import br.com.projeto.docinhos.dto.request.ProdutoRequest;
 import br.com.projeto.docinhos.dto.response.PageResponse;
 import br.com.projeto.docinhos.dto.response.ProdutoDetalhadoResponse;
@@ -13,9 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +47,14 @@ public class ProdutoControllerImpl implements ProdutoController {
       @RequestPart(value = "imagem", required = false) MultipartFile imagem,
       @Valid @RequestPart("produto") ProdutoRequest request) {
     produtoService.atualizarProduto(id, imagem, request);
+  }
+
+  @Override
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PatchMapping(value = "/{id}/disponibilidade", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public void alterarDisponibilidade(
+      @PathVariable("id") UUID id, @Valid @RequestBody ProdutoDisponibilidadeRequest request) {
+    produtoService.alterarDisponibilidade(id, request);
   }
 
   @Override
