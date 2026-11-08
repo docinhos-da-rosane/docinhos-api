@@ -2,20 +2,22 @@ package br.com.projeto.docinhos.integration.image.cloudinary;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.projeto.docinhos.exception.ErroInternoException;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
+import com.cloudinary.Api;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;
+import com.cloudinary.api.ApiResponse;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -31,6 +33,10 @@ class CloudinaryStorageTest {
   @Mock private Cloudinary cloudinary;
 
   @Mock private Uploader uploader;
+
+  @Mock private Api api;
+
+  @Mock private ApiResponse apiResponse;
 
   private CloudinaryStorage cloudinaryStorage;
 
@@ -92,22 +98,82 @@ class CloudinaryStorageTest {
 
     @Test
     void deveDeletarImagemComSucesso() throws Exception {
+      when(uploader.destroy(eq(ID_ARMAZENAMENTO), anyMap())).thenReturn(Map.of("result", "ok"));
+
       cloudinaryStorage.deletar(ID_ARMAZENAMENTO);
 
       verify(uploader).destroy(eq(ID_ARMAZENAMENTO), anyMap());
     }
 
     @Test
-    void deveLancarErroInternoExceptionQuandoFalharAoDeletar() throws Exception {
-      doThrow(new RuntimeException("falha ao deletar"))
-          .when(uploader)
-          .destroy(anyString(), anyMap());
+    void deveLancarErroQuandoCloudinaryNaoConfirmarExclusao() throws Exception {
+      when(uploader.destroy(eq(ID_ARMAZENAMENTO), anyMap())).thenReturn(Map.of("result", "error"));
+
+      assertThrows(ErroInternoException.class, () -> cloudinaryStorage.deletar(ID_ARMAZENAMENTO));
+    }
+
+    @Test
+    void deveLancarErroQuandoResultadoDaExclusaoForNulo() throws Exception {
+      when(uploader.destroy(eq(ID_ARMAZENAMENTO), anyMap())).thenReturn(null);
+
+      assertThrows(ErroInternoException.class, () -> cloudinaryStorage.deletar(ID_ARMAZENAMENTO));
+    }
+  }
+
+  @Nested
+  class RestaurarTests {
+
+    @BeforeEach
+    void setUp() {
+      cloudinaryStorage = new CloudinaryStorage(cloudinary);
+      when(cloudinary.api()).thenReturn(api);
+    }
+
+    @Test
+    void deveRestaurarImagemPeloPublicIdEValidarResultado() throws Exception {
+      when(api.restore(eq(List.of(ID_ARMAZENAMENTO)), anyMap())).thenReturn(apiResponse);
+      when(apiResponse.get(ID_ARMAZENAMENTO)).thenReturn(Map.of("public_id", ID_ARMAZENAMENTO));
+
+      cloudinaryStorage.restaurar(ID_ARMAZENAMENTO);
+
+      verify(api)
+          .restore(
+              eq(List.of(ID_ARMAZENAMENTO)),
+              eq(Map.of("resource_type", "image", "type", "upload")));
+    }
+
+    @Test
+    void devePreservarCausaQuandoFalhar() throws Exception {
+      RuntimeException falhaOriginal = new RuntimeException("falha");
+      when(api.restore(eq(List.of(ID_ARMAZENAMENTO)), anyMap())).thenThrow(falhaOriginal);
 
       ErroInternoException exception =
           assertThrows(
-              ErroInternoException.class, () -> cloudinaryStorage.deletar(ID_ARMAZENAMENTO));
+              ErroInternoException.class, () -> cloudinaryStorage.restaurar(ID_ARMAZENAMENTO));
 
-      assertTrue(exception.getMessage().contains("Erro ao deletar a imagem do Cloudinary"));
+      assertSame(falhaOriginal, exception.getCause());
+    }
+
+    @Test
+    void deveFalharQuandoRespostaDaRestauracaoForNula() throws Exception {
+      when(api.restore(eq(List.of(ID_ARMAZENAMENTO)), anyMap())).thenReturn(null);
+
+      assertThrows(ErroInternoException.class, () -> cloudinaryStorage.restaurar(ID_ARMAZENAMENTO));
+    }
+
+    @Test
+    void deveFalharQuandoImagemNaoEstiverNaResposta() throws Exception {
+      when(api.restore(eq(List.of(ID_ARMAZENAMENTO)), anyMap())).thenReturn(apiResponse);
+
+      assertThrows(ErroInternoException.class, () -> cloudinaryStorage.restaurar(ID_ARMAZENAMENTO));
+    }
+
+    @Test
+    void deveFalharQuandoPublicIdRetornadoForDiferente() throws Exception {
+      when(api.restore(eq(List.of(ID_ARMAZENAMENTO)), anyMap())).thenReturn(apiResponse);
+      when(apiResponse.get(ID_ARMAZENAMENTO)).thenReturn(Map.of("public_id", "outro-id"));
+
+      assertThrows(ErroInternoException.class, () -> cloudinaryStorage.restaurar(ID_ARMAZENAMENTO));
     }
   }
 

@@ -5,9 +5,12 @@ import br.com.projeto.docinhos.integration.image.ImagemStorage;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
+import com.cloudinary.api.ApiResponse;
 import com.cloudinary.utils.ObjectUtils;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -63,13 +66,56 @@ public class CloudinaryStorage implements ImagemStorage {
     log.info("Iniciando exclusão de imagem no Cloudinary. idArmazenamento={}", idArmazenamento);
 
     try {
-      cloudinary.uploader().destroy(idArmazenamento, ObjectUtils.emptyMap());
+      Map<?, ?> resultado = cloudinary.uploader().destroy(idArmazenamento, ObjectUtils.emptyMap());
+
+      if (validarExclusao(resultado)) {
+        throw new IllegalStateException(
+            "Cloudinary não confirmou a exclusão da imagem: " + idArmazenamento);
+      }
+
       log.info("Imagem excluída com sucesso do Cloudinary. idArmazenamento={}", idArmazenamento);
 
     } catch (Exception ex) {
       throw new ErroInternoException(
           "Erro ao deletar a imagem do Cloudinary: " + ex.getMessage(), ex);
     }
+  }
+
+  @Override
+  public void restaurar(String idArmazenamento) {
+    log.info("Iniciando restauração de imagem no Cloudinary. idArmazenamento={}", idArmazenamento);
+
+    try {
+      ApiResponse resultado =
+          cloudinary
+              .api()
+              .restore(
+                  List.of(idArmazenamento),
+                  ObjectUtils.asMap("resource_type", "image", "type", "upload"));
+
+      if (validarRestauracao(resultado, idArmazenamento)) {
+        throw new IllegalStateException(
+            "Cloudinary não confirmou a restauração da imagem: " + idArmazenamento);
+      }
+
+      log.info("Imagem restaurada com sucesso no Cloudinary. idArmazenamento={}", idArmazenamento);
+
+    } catch (Exception ex) {
+      throw new ErroInternoException(
+          "Erro ao restaurar a imagem do Cloudinary: " + ex.getMessage(), ex);
+    }
+  }
+
+  private boolean validarRestauracao(Map<?, ?> resultado, String idArmazenamento) {
+    Object imagemRestaurada = Objects.isNull(resultado) ? null : resultado.get(idArmazenamento);
+
+    return !(imagemRestaurada instanceof Map<?, ?> imagem)
+        || !Objects.equals(idArmazenamento, imagem.get("public_id"));
+  }
+
+  private boolean validarExclusao(Map<?, ?> resultado) {
+    Object status = Objects.isNull(resultado) ? null : resultado.get("result");
+    return !Objects.equals("ok", status) && !Objects.equals("not found", status);
   }
 
   private Map<String, Object> criarParametrosUpload(String caminho) {

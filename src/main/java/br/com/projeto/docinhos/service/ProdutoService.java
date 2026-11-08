@@ -19,4 +19,6 @@ public interface ProdutoService {
   void atualizarProduto(UUID id, MultipartFile imagem, ProdutoRequest request);
 
   void alterarDisponibilidade(UUID id, ProdutoDisponibilidadeRequest request);
+
+  void deletarProduto(UUID id);
 }

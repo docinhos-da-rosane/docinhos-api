@@ -13,6 +13,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -55,6 +56,13 @@ public class ProdutoControllerImpl implements ProdutoController {
   public void alterarDisponibilidade(
       @PathVariable("id") UUID id, @Valid @RequestBody ProdutoDisponibilidadeRequest request) {
     produtoService.alterarDisponibilidade(id, request);
+  }
+
+  @Override
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @DeleteMapping("/{id}")
+  public void deletarProduto(@PathVariable("id") UUID id) {
+    produtoService.deletarProduto(id);
   }
 
   @Override

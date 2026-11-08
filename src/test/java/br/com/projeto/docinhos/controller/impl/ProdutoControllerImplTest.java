@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -239,6 +240,39 @@ class ProdutoControllerImplTest {
           .perform(get(PRODUTO_ID_URL, idValido))
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.codeError").value(CodeError.DADOS_INVALIDOS.name()));
+    }
+  }
+
+  @Nested
+  class DeletarProdutoTests {
+
+    @Test
+    void deveExcluirProdutoComSucesso() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      mockMvc
+          .perform(delete(PRODUTO_ID_URL, id))
+          .andExpect(status().isNoContent())
+          .andExpect(content().string(""));
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoIdForInvalido() throws Exception {
+      mockMvc.perform(delete(PRODUTO_URL + "/invalido")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarNotFoundQuandoProdutoNaoExistir() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      doThrow(new NaoEncontradoException("Produto não encontrado"))
+          .when(produtoService)
+          .deletarProduto(id);
+
+      mockMvc
+          .perform(delete(PRODUTO_ID_URL, id))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
     }
   }
 
