@@ -13,6 +13,8 @@ public interface ProdutoImagemService {
 
   void deletar(ProdutoImagem produtoImagem);
 
+  void restaurar(String idArmazenamento);
+
   void rollback(ProdutoImagem produtoImagem);
 
   void rollback(

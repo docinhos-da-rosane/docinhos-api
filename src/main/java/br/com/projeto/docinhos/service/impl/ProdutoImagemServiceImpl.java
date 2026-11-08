@@ -101,6 +101,11 @@ public class ProdutoImagemServiceImpl implements ProdutoImagemService {
         produtoImagem.getIdArmazenamento());
   }
 
+  @Override
+  public void restaurar(String idArmazenamento) {
+    imagemStorage.restaurar(idArmazenamento);
+  }
+
   private void validarImagem(MultipartFile arquivo) {
     validarPresenca(arquivo);
     validarTipoArquivo(arquivo);

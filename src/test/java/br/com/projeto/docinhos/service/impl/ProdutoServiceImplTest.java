@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -37,6 +38,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -364,5 +366,125 @@ class ProdutoServiceImplTest {
   private Pageable criarPaginacao(int page, int size) {
     return PageRequest.of(
         page, size, Sort.by(Sort.Order.desc("disponivel"), Sort.Order.asc("nome")));
+  }
+
+  @Nested
+  class DeletarProdutoTests {
+
+    @Test
+    void deveExcluirProdutoComSucesso() {
+      Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+      Produto produto = ProdutoMock.criarProdutoPadrao(categoria);
+      UUID id = produto.getId();
+
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.of(produto));
+
+      produtoService.deletarProduto(id);
+
+      InOrder ordem = inOrder(produtoRepository, produtoImagemService);
+      ordem.verify(produtoRepository).findProdutoById(id);
+      ordem.verify(produtoRepository).delete(produto);
+      ordem.verify(produtoImagemService).deletar(produto.getImagem());
+      ordem.verify(produtoRepository).flush();
+      verify(produtoImagemService, never()).restaurar(any());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoProdutoNaoExistir() {
+      UUID id = UUID.randomUUID();
+
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.empty());
+
+      assertThrows(NaoEncontradoException.class, () -> produtoService.deletarProduto(id));
+
+      verify(produtoRepository, never()).delete(any(Produto.class));
+      verify(produtoRepository, never()).flush();
+      verifyNoInteractions(produtoImagemService);
+    }
+
+    @Test
+    void deveManterImagemQuandoDeleteDoProdutoFalhar() {
+      UUID id = UUID.randomUUID();
+      Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+      Produto produto = ProdutoMock.criarProdutoPadrao(categoria);
+      RuntimeException falhaOriginal = new RuntimeException("falha ao excluir produto");
+
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.of(produto));
+      doThrow(falhaOriginal).when(produtoRepository).delete(produto);
+
+      RuntimeException exception =
+          assertThrows(RuntimeException.class, () -> produtoService.deletarProduto(id));
+
+      assertSame(falhaOriginal, exception);
+      verifyNoInteractions(produtoImagemService);
+      verify(produtoRepository, never()).flush();
+    }
+
+    @Test
+    void deveRestaurarImagemQuandoExclusaoNoCloudinaryFalhar() {
+      UUID id = UUID.randomUUID();
+      Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+      Produto produto = ProdutoMock.criarProdutoPadrao(categoria);
+      ProdutoImagem imagem = produto.getImagem();
+
+      RuntimeException falhaOriginal = new RuntimeException("falha no Cloudinary");
+
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.of(produto));
+      doThrow(falhaOriginal).when(produtoImagemService).deletar(imagem);
+
+      RuntimeException exception =
+          assertThrows(RuntimeException.class, () -> produtoService.deletarProduto(id));
+
+      assertSame(falhaOriginal, exception);
+      InOrder ordem = inOrder(produtoRepository, produtoImagemService);
+      ordem.verify(produtoRepository).delete(produto);
+      ordem.verify(produtoImagemService).deletar(imagem);
+      ordem.verify(produtoImagemService).restaurar(imagem.getIdArmazenamento());
+      verify(produtoRepository, never()).flush();
+    }
+
+    @Test
+    void deveRestaurarImagemQuandoFlushFalhar() {
+      UUID id = UUID.randomUUID();
+      Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+      Produto produto = ProdutoMock.criarProdutoPadrao(categoria);
+      ProdutoImagem imagem = produto.getImagem();
+
+      RuntimeException falhaOriginal = new RuntimeException("falha no flush");
+
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.of(produto));
+      doThrow(falhaOriginal).when(produtoRepository).flush();
+
+      RuntimeException exception =
+          assertThrows(RuntimeException.class, () -> produtoService.deletarProduto(id));
+
+      assertSame(falhaOriginal, exception);
+      InOrder ordem = inOrder(produtoRepository, produtoImagemService);
+      ordem.verify(produtoRepository).delete(produto);
+      ordem.verify(produtoImagemService).deletar(imagem);
+      ordem.verify(produtoRepository).flush();
+      ordem.verify(produtoImagemService).restaurar(imagem.getIdArmazenamento());
+    }
+
+    @Test
+    void devePreservarFalhaOriginalQuandoRestauracaoAposErroCloudinaryFalhar() {
+      UUID id = UUID.randomUUID();
+      Categoria categoria = CategoriaMock.criarCategoriaPadrao();
+      Produto produto = ProdutoMock.criarProdutoPadrao(categoria);
+      ProdutoImagem imagem = produto.getImagem();
+
+      RuntimeException falhaOriginal = new RuntimeException("falha no Cloudinary");
+      RuntimeException falhaRestauracao = new RuntimeException("falha na restauração");
+
+      when(produtoRepository.findProdutoById(id)).thenReturn(Optional.of(produto));
+      doThrow(falhaOriginal).when(produtoImagemService).deletar(imagem);
+      doThrow(falhaRestauracao).when(produtoImagemService).restaurar(imagem.getIdArmazenamento());
+
+      RuntimeException exception =
+          assertThrows(RuntimeException.class, () -> produtoService.deletarProduto(id));
+
+      assertSame(falhaOriginal, exception);
+      verify(produtoImagemService).restaurar(imagem.getIdArmazenamento());
+    }
   }
 }

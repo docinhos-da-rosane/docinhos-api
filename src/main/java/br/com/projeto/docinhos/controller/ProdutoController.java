@@ -110,6 +110,25 @@ public interface ProdutoController {
       content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   void alterarDisponibilidade(UUID id, ProdutoDisponibilidadeRequest request);
 
+  @Operation(
+      summary = "Excluir produto",
+      description = "Exclui definitivamente o produto, suas porções e sua imagem.",
+      security = @SecurityRequirement(name = "bearerAuth"))
+  @ApiResponse(responseCode = "204", description = "Produto excluído com sucesso")
+  @ApiResponse(
+      responseCode = "400",
+      description = "Identificador inválido",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  @ApiResponse(
+      responseCode = "404",
+      description = "Produto não encontrado",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  @ApiResponse(
+      responseCode = "500",
+      description = "Falha ao concluir a exclusão",
+      content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  void deletarProduto(UUID id);
+
   @Operation(summary = "Listar produtos", description = "Retorna a lista paginada de produtos.")
   @ApiResponse(
       responseCode = "200",

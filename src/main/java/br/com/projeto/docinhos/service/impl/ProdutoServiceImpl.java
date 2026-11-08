@@ -135,6 +135,43 @@ public class ProdutoServiceImpl implements ProdutoService {
     produtoRepository.flush();
   }
 
+  @Override
+  @Transactional
+  public void deletarProduto(UUID id) {
+    Produto produto = buscarProdutoPorId(id);
+
+    ProdutoImagem imagem = produto.getImagem();
+    String idArmazenamento = imagem.getIdArmazenamento();
+    boolean tentativaExclusaoImagem = false;
+
+    try {
+      produtoRepository.delete(produto);
+
+      tentativaExclusaoImagem = true;
+
+      produtoImagemService.deletar(imagem);
+      produtoRepository.flush();
+
+    } catch (Exception ex) {
+      if (tentativaExclusaoImagem) {
+        restaurar(idArmazenamento);
+      }
+
+      throw ex;
+    }
+  }
+
+  private void restaurar(String idArmazenamento) {
+    try {
+      produtoImagemService.restaurar(idArmazenamento);
+    } catch (Exception falhaRestauracao) {
+      log.error(
+          "Falha ao restaurar imagem do produto após erro na exclusão. idArmazenamento={}",
+          idArmazenamento,
+          falhaRestauracao);
+    }
+  }
+
   private void atualizarProdutoComDadosBasicos(
       ProdutoRequest request, Produto produto, Categoria categoria) {
     produtoMapper.toProduto(request, produto);

@@ -196,6 +196,17 @@ class ProdutoImagemServiceImplTest {
     }
   }
 
+  @Nested
+  class RestaurarTests {
+
+    @Test
+    void deveDelegarRestauracaoComSucesso() {
+      produtoImagemService.restaurar("public-id-original");
+
+      verify(cloudinaryStorage).restaurar("public-id-original");
+    }
+  }
+
   private ImagemArmazenadaResponse criarImagemArmazenadaResponsePadrao() {
     return new ImagemArmazenadaResponse("idArmazenamento123", "https://example.com/imagem.jpg");
   }
