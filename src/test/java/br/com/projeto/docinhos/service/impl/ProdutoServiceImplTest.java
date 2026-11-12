@@ -190,7 +190,7 @@ class ProdutoServiceImplTest {
     }
 
     @Test
-    void devePropagarFalhaNaPersistenciaSemDeletarImagemAnterior() {
+    void devePropagarFalhaNaPersistenciaDeletarImagemNovaRestaurarImagemAntiga() {
       Produto produto = criarProduto(List.of(ProdutoMock.criarProdutoPorcaoPadrao()));
       ProdutoImagem imagemAnterior = produto.getImagem();
       ProdutoImagem imagemNova = ProdutoMock.criarProdutoImagemPadrao();
@@ -207,7 +207,8 @@ class ProdutoServiceImplTest {
           RuntimeException.class,
           () -> produtoService.atualizarProduto(produto.getId(), arquivo, request));
 
-      verify(produtoImagemService, never()).deletar(imagemAnterior);
+      verify(produtoImagemService, times(1)).restaurar(imagemAnterior.getIdArmazenamento());
+      verify(produtoImagemService, times(1)).deletar(imagemAnterior);
     }
   }
 

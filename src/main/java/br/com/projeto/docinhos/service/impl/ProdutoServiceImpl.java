@@ -101,20 +101,35 @@ public class ProdutoServiceImpl implements ProdutoService {
     Produto produto = buscarProdutoPorId(id);
     Categoria categoria = categoriaService.buscarCategoriaPorId(request.categoriaId());
 
+    boolean tentativaExclusaoImagem = false;
     ProdutoImagem produtoImagemNova = null;
-    ProdutoImagem produtoImagemAnterior = null;
+    ProdutoImagem produtoImagemAnterior = produto.getImagem();
+    String idArmazenamentoAnterior = produtoImagemAnterior.getIdArmazenamento();
 
-    atualizarProdutoComDadosBasicos(request, produto, categoria);
+    try {
 
-    if (Objects.nonNull(imagem)) {
-      produtoImagemAnterior = produto.getImagem();
-      produtoImagemNova = atualizarProdutoImagem(imagem, produto);
-    }
+      atualizarProdutoComDadosBasicos(request, produto, categoria);
 
-    produtoRepository.flush();
+      if (Objects.nonNull(imagem)) {
+        produtoImagemNova = atualizarProdutoImagem(imagem, produto);
 
-    if (Objects.nonNull(produtoImagemNova)) {
-      deletarProdutoImagemAnterior(produtoImagemNova, produtoImagemAnterior, produto);
+        tentativaExclusaoImagem = true;
+        produtoImagemService.deletar(produtoImagemAnterior);
+      }
+
+      produtoRepository.flush();
+
+    } catch (Exception ex) {
+
+      if (Objects.nonNull(produtoImagemNova)) {
+        produtoImagemService.rollback(produtoImagemNova);
+      }
+
+      if (tentativaExclusaoImagem) {
+        restaurar(idArmazenamentoAnterior);
+      }
+
+      throw ex;
     }
 
     log.info(
@@ -161,17 +176,6 @@ public class ProdutoServiceImpl implements ProdutoService {
     }
   }
 
-  private void restaurar(String idArmazenamento) {
-    try {
-      produtoImagemService.restaurar(idArmazenamento);
-    } catch (Exception falhaRestauracao) {
-      log.error(
-          "Falha ao restaurar imagem do produto após erro na exclusão. idArmazenamento={}",
-          idArmazenamento,
-          falhaRestauracao);
-    }
-  }
-
   private void atualizarProdutoComDadosBasicos(
       ProdutoRequest request, Produto produto, Categoria categoria) {
     produtoMapper.toProduto(request, produto);
@@ -183,29 +187,21 @@ public class ProdutoServiceImpl implements ProdutoService {
   }
 
   private ProdutoImagem atualizarProdutoImagem(MultipartFile imagemNova, Produto produto) {
-    ProdutoImagem produtoImagemNova = null;
-
-    try {
-      produtoImagemNova = produtoImagemService.armazenar(imagemNova);
-      produto.removerImagem();
-      produto.adicionarImagem(produtoImagemNova);
-
-    } catch (Exception e) {
-      produtoImagemService.rollback(produtoImagemNova);
-      throw e;
-    }
+    ProdutoImagem produtoImagemNova = produtoImagemService.armazenar(imagemNova);
+    produto.removerImagem();
+    produto.adicionarImagem(produtoImagemNova);
 
     return produtoImagemNova;
   }
 
-  private void deletarProdutoImagemAnterior(
-      ProdutoImagem produtoImagemNova, ProdutoImagem produtoImagemAnterior, Produto produto) {
+  private void restaurar(String idArmazenamento) {
     try {
-      produtoImagemService.deletar(produtoImagemAnterior);
-    } catch (Exception ex) {
-      produtoImagemService.rollback(produtoImagemNova, produtoImagemAnterior, produto);
-      produtoRepository.flush();
-      throw ex;
+      produtoImagemService.restaurar(idArmazenamento);
+    } catch (Exception falhaRestauracao) {
+      log.error(
+          "Falha ao restaurar imagem do produto após erro na exclusão. idArmazenamento={}",
+          idArmazenamento,
+          falhaRestauracao);
     }
   }
 
