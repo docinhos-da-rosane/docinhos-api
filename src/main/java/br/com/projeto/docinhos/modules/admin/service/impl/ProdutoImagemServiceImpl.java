@@ -1,0 +1,126 @@
+package br.com.projeto.docinhos.modules.admin.service.impl;
+
+import static java.util.Objects.isNull;
+
+import br.com.projeto.docinhos.config.ImagemProperties;
+import br.com.projeto.docinhos.domain.model.Produto;
+import br.com.projeto.docinhos.domain.model.ProdutoImagem;
+import br.com.projeto.docinhos.integration.image.ImagemStorage;
+import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
+import br.com.projeto.docinhos.modules.admin.service.ProdutoImagemService;
+import br.com.projeto.docinhos.shared.exception.ErroInternoException;
+import br.com.projeto.docinhos.shared.exception.RequisicaoInvalidaException;
+import java.io.IOException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ProdutoImagemServiceImpl implements ProdutoImagemService {
+
+  private final ImagemStorage imagemStorage;
+  private final ImagemProperties imagemProperties;
+
+  private static final int DIMENSAO_MINIATURA = 128;
+  private static final int DIMENSAO_MEDIA = 1200;
+
+  @Override
+  public ProdutoImagem armazenar(MultipartFile arquivo) {
+    log.info("Armazenando imagem do produto. nomeOriginal={}", arquivo.getOriginalFilename());
+
+    try {
+      validarImagem(arquivo);
+      ImagemArmazenadaResponse imagemArmazenada =
+          imagemStorage.armazenar(arquivo.getBytes(), imagemProperties.caminho());
+
+      log.info(
+          "Imagem do produto armazenada com sucesso. idArmazenamento={}",
+          imagemArmazenada.idArmazenamento());
+
+      return new ProdutoImagem(imagemArmazenada.url(), imagemArmazenada.idArmazenamento());
+
+    } catch (IOException ex) {
+      throw new ErroInternoException("Não foi possível ler a imagem", ex);
+    }
+  }
+
+  @Override
+  public String gerarUrlMiniatura(ProdutoImagem produtoImagem) {
+    return imagemStorage.gerarUrl(produtoImagem.getIdArmazenamento(), DIMENSAO_MINIATURA, true);
+  }
+
+  @Override
+  public String gerarUrlMedia(ProdutoImagem produtoImagem) {
+    return imagemStorage.gerarUrl(produtoImagem.getIdArmazenamento(), DIMENSAO_MEDIA);
+  }
+
+  @Override
+  public void rollback(ProdutoImagem produtoImagem) {
+    if (isNull(produtoImagem)) {
+      return;
+    }
+
+    log.info(
+        "Rollback: removendo imagem do produto. idArmazenamento={}",
+        produtoImagem.getIdArmazenamento());
+
+    try {
+      deletar(produtoImagem);
+    } catch (Exception cleanupEx) {
+      log.error(
+          "Rollback: falha ao remover imagem do produto. idArmazenamento={}. Erro: {}",
+          produtoImagem.getIdArmazenamento(),
+          cleanupEx.getMessage());
+      throw new ErroInternoException("Falha ao executar rollback da imagem do produto", cleanupEx);
+    }
+
+    log.info(
+        "Rollback: imagem do produto removida com sucesso. idArmazenamento={}",
+        produtoImagem.getIdArmazenamento());
+  }
+
+  @Override
+  public void rollback(
+      ProdutoImagem produtoImagemNova, ProdutoImagem produtoImagemAnterior, Produto produto) {
+    rollback(produtoImagemNova);
+    produto.removerImagem();
+    produto.adicionarImagem(produtoImagemAnterior);
+  }
+
+  @Override
+  public void deletar(ProdutoImagem produtoImagem) {
+    log.info("Deletando imagem do produto. idArmazenamento={}", produtoImagem.getIdArmazenamento());
+
+    imagemStorage.deletar(produtoImagem.getIdArmazenamento());
+
+    log.info(
+        "Imagem do produto deletada com sucesso. idArmazenamento={}",
+        produtoImagem.getIdArmazenamento());
+  }
+
+  @Override
+  public void restaurar(String idArmazenamento) {
+    imagemStorage.restaurar(idArmazenamento);
+  }
+
+  private void validarImagem(MultipartFile arquivo) {
+    validarPresenca(arquivo);
+    validarTipoArquivo(arquivo);
+  }
+
+  private void validarPresenca(MultipartFile arquivo) {
+    if (isNull(arquivo) || arquivo.isEmpty()) {
+      throw new RequisicaoInvalidaException("A imagem do produto é obrigatória");
+    }
+  }
+
+  private void validarTipoArquivo(MultipartFile arquivo) {
+    if (!imagemProperties.tiposPermitidos().contains(arquivo.getContentType())) {
+      throw new RequisicaoInvalidaException(
+          "A imagem do produto deve estar no formato JPG, JPEG ou PNG");
+    }
+  }
+}

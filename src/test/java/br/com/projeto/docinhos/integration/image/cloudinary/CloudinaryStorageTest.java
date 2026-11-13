@@ -11,8 +11,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.projeto.docinhos.exception.ErroInternoException;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
+import br.com.projeto.docinhos.shared.exception.ErroInternoException;
 import com.cloudinary.Api;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Uploader;

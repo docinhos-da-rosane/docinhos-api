@@ -1,8 +1,8 @@
 package br.com.projeto.docinhos.integration.image.cloudinary;
 
-import br.com.projeto.docinhos.exception.ErroInternoException;
 import br.com.projeto.docinhos.integration.image.ImagemStorage;
 import br.com.projeto.docinhos.integration.image.dto.ImagemArmazenadaResponse;
+import br.com.projeto.docinhos.shared.exception.ErroInternoException;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.Transformation;
 import com.cloudinary.api.ApiResponse;

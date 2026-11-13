@@ -6,9 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.projeto.docinhos.exception.NaoEncontradoException;
-import br.com.projeto.docinhos.model.Usuario;
-import br.com.projeto.docinhos.repository.UsuarioRepository;
+import br.com.projeto.docinhos.domain.model.Usuario;
+import br.com.projeto.docinhos.domain.repository.UsuarioRepository;
+import br.com.projeto.docinhos.shared.exception.NaoEncontradoException;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Nested;
