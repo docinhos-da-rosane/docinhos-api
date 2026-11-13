@@ -1,0 +1,487 @@
+package br.com.projeto.docinhos.modules.admin.controller.impl;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import br.com.projeto.docinhos.domain.enums.CodeError;
+import br.com.projeto.docinhos.modules.admin.dto.request.ProdutoDisponibilidadeRequest;
+import br.com.projeto.docinhos.modules.admin.dto.request.ProdutoRequest;
+import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoDetalhadoResponse;
+import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoResponse;
+import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoResumoResponse;
+import br.com.projeto.docinhos.modules.admin.service.ProdutoService;
+import br.com.projeto.docinhos.security.JwtAuthenticationFilter;
+import br.com.projeto.docinhos.shared.dto.PageResponse;
+import br.com.projeto.docinhos.shared.exception.NaoEncontradoException;
+import br.com.projeto.docinhos.shared.mocks.ProdutoMock;
+import br.com.projeto.docinhos.shared.utils.TestUtils;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import tools.jackson.databind.ObjectMapper;
+
+@WebMvcTest(
+    controllers = ProdutoControllerImpl.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = JwtAuthenticationFilter.class))
+@AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles("test")
+class ProdutoControllerImplTest {
+  @Autowired private MockMvc mockMvc;
+
+  @Autowired private ObjectMapper objectMapper;
+
+  @MockitoBean private ProdutoService produtoService;
+
+  private static final String PRODUTO_URL = "/admin/produtos";
+  private static final String PRODUTO_ID_URL = PRODUTO_URL + "/{id}";
+  private static final String DISPONIBILIDADE_URL = PRODUTO_ID_URL + "/disponibilidade";
+
+  @Nested
+  class CadastrarProdutoTests {
+
+    @Test
+    void deveCadastrarProdutoComSucesso() throws Exception {
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      ProdutoResponse response = ProdutoMock.criarProdutoResponsePadrao();
+
+      when(produtoService.criarProduto(any(), eq(request))).thenReturn(response);
+
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      mockMvc
+          .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
+          .andExpect(status().isCreated())
+          .andExpect(content().json(jsonToString(response)));
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestInvalidoProvider")
+    void deveRetornarBadRequestQuandoCadastrarProdutoComDadosInvalidos(
+        ProdutoRequest requestInvalido) throws Exception {
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(requestInvalido));
+
+      mockMvc
+          .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
+          .andExpect(status().isBadRequest());
+    }
+
+    static Stream<ProdutoRequest> requestInvalidoProvider() {
+      return Stream.of(
+          ProdutoMock.criarProdutoRequest().nome("").build(),
+          ProdutoMock.criarProdutoRequest().nome("a".repeat(101)).build(),
+          ProdutoMock.criarProdutoRequest().descricao("").build(),
+          ProdutoMock.criarProdutoRequest().descricao("a".repeat(501)).build(),
+          ProdutoMock.criarProdutoRequest().categoriaId(null).build(),
+          ProdutoMock.criarProdutoRequest().porcoes(null).build(),
+          ProdutoMock.criarProdutoRequest().porcoes(List.of()).build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().quantidade(null).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().quantidade(0).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().quantidade(-1).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().preco(null).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(
+                  List.of(
+                      ProdutoMock.criarProdutoPorcaoRequest()
+                          .preco(new BigDecimal("0.00"))
+                          .build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(
+                  List.of(
+                      ProdutoMock.criarProdutoPorcaoRequest()
+                          .preco(new BigDecimal("-1.00"))
+                          .build()))
+              .build());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoSemProduto() throws Exception {
+      MockMultipartFile imagemPart = ProdutoMock.criaMultiPartImagemPadrao();
+
+      mockMvc.perform(multipart(PRODUTO_URL).file(imagemPart)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoSemImagem() throws Exception {
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      mockMvc.perform(multipart(PRODUTO_URL).file(produtoPart)).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCadastrarProdutoComImagemMuitoGrande() throws Exception {
+      long maxSize = 10 * 1024 * 1024L;
+      long tamanhoExcedido = maxSize + 1;
+
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      MockMultipartFile imagemPart =
+          new MockMultipartFile(
+              "imagem", "produto.png", MediaType.IMAGE_PNG_VALUE, new byte[(int) tamanhoExcedido]);
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      when(produtoService.criarProduto(imagemPart, request))
+          .thenThrow(new MaxUploadSizeExceededException(maxSize));
+
+      mockMvc
+          .perform(multipart(PRODUTO_URL).file(imagemPart).file(produtoPart))
+          .andExpect(status().isBadRequest());
+    }
+  }
+
+  @Nested
+  class ListarProdutosTests {
+
+    @Test
+    void deveRetornarListaPaginadaComSucesso() throws Exception {
+      ProdutoResumoResponse produto = ProdutoMock.criarProdutoResumoResponsePadrao();
+
+      PageResponse<ProdutoResumoResponse> response =
+          new PageResponse<>(List.of(produto), 0, 6, 1, 1);
+      when(produtoService.listarProdutos(0, 6)).thenReturn(response);
+
+      mockMvc
+          .perform(get(PRODUTO_URL).queryParam("page", "0").queryParam("size", "6"))
+          .andExpect(status().isOk())
+          .andExpect(content().json(TestUtils.toJson(response)));
+    }
+
+    @Test
+    void deveRetornarListaVaziaComSucesso() throws Exception {
+      PageResponse<ProdutoResumoResponse> response = new PageResponse<>(List.of(), 0, 6, 0, 0);
+
+      when(produtoService.listarProdutos(0, 6)).thenReturn(response);
+
+      mockMvc
+          .perform(get(PRODUTO_URL).queryParam("page", "0").queryParam("size", "6"))
+          .andExpect(status().isOk())
+          .andExpect(content().json(TestUtils.toJson(response)));
+    }
+  }
+
+  @Nested
+  class BuscarProdutoTests {
+
+    @Test
+    void deveRetornarDetalhesDoProduto() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      ProdutoDetalhadoResponse response = ProdutoMock.criarProdutoDetalhadoResponsePadrao();
+
+      when(produtoService.buscarProduto(id)).thenReturn(response);
+
+      mockMvc
+          .perform(get(PRODUTO_ID_URL, id))
+          .andExpect(status().isOk())
+          .andExpect(content().json(jsonToString(response)));
+
+      verify(produtoService).buscarProduto(id);
+    }
+
+    @Test
+    void devePropagarExcecaoQuandoBuscarProdutoNaoEncontrado() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      when(produtoService.buscarProduto(id))
+          .thenThrow(new NaoEncontradoException("Produto não encontrado"));
+
+      mockMvc
+          .perform(get(PRODUTO_ID_URL, id))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
+    }
+
+    @Test
+    void devePropagarExcecaoQuandoBuscarProdutoFalhar() throws Exception {
+      String idValido = "id-invalido";
+
+      mockMvc
+          .perform(get(PRODUTO_ID_URL, idValido))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.codeError").value(CodeError.DADOS_INVALIDOS.name()));
+    }
+  }
+
+  @Nested
+  class DeletarProdutoTests {
+
+    @Test
+    void deveExcluirProdutoComSucesso() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      mockMvc
+          .perform(delete(PRODUTO_ID_URL, id))
+          .andExpect(status().isNoContent())
+          .andExpect(content().string(""));
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoIdForInvalido() throws Exception {
+      mockMvc.perform(delete(PRODUTO_URL + "/invalido")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarNotFoundQuandoProdutoNaoExistir() throws Exception {
+      UUID id = UUID.randomUUID();
+
+      doThrow(new NaoEncontradoException("Produto não encontrado"))
+          .when(produtoService)
+          .deletarProduto(id);
+
+      mockMvc
+          .perform(delete(PRODUTO_ID_URL, id))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
+    }
+  }
+
+  @Nested
+  class AtualizarProdutoTests {
+
+    @Test
+    void deveAtualizarProdutoSemImagemEResponderComSucesso() throws Exception {
+      UUID id = UUID.randomUUID();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      mockMvc
+          .perform(
+              multipart(PRODUTO_ID_URL, id)
+                  .file(produtoPart)
+                  .with(
+                      multipartRequest -> {
+                        multipartRequest.setMethod("PUT");
+                        return multipartRequest;
+                      }))
+          .andExpect(status().isNoContent())
+          .andExpect(content().string(""));
+
+      verify(produtoService).atualizarProduto(id, null, request);
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestInvalidoProvider")
+    void deveRetornarBadRequestParaDadosInvalidos(ProdutoRequest request) throws Exception {
+      MockMultipartFile produtoPart = criarProdutoPart(jsonToString(request));
+
+      mockMvc
+          .perform(
+              multipart(PRODUTO_ID_URL, UUID.randomUUID())
+                  .file(produtoPart)
+                  .with(
+                      multipartRequest -> {
+                        multipartRequest.setMethod("PUT");
+                        return multipartRequest;
+                      }))
+          .andExpect(status().isBadRequest());
+    }
+
+    static Stream<ProdutoRequest> requestInvalidoProvider() {
+      return Stream.of(
+          ProdutoMock.criarProdutoRequest().nome("").build(),
+          ProdutoMock.criarProdutoRequest().nome("a".repeat(101)).build(),
+          ProdutoMock.criarProdutoRequest().descricao("").build(),
+          ProdutoMock.criarProdutoRequest().descricao("a".repeat(501)).build(),
+          ProdutoMock.criarProdutoRequest().categoriaId(null).build(),
+          ProdutoMock.criarProdutoRequest().porcoes(null).build(),
+          ProdutoMock.criarProdutoRequest().porcoes(List.of()).build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().quantidade(null).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().quantidade(0).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().quantidade(-1).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(List.of(ProdutoMock.criarProdutoPorcaoRequest().preco(null).build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(
+                  List.of(
+                      ProdutoMock.criarProdutoPorcaoRequest()
+                          .preco(new BigDecimal("0.00"))
+                          .build()))
+              .build(),
+          ProdutoMock.criarProdutoRequest()
+              .porcoes(
+                  List.of(
+                      ProdutoMock.criarProdutoPorcaoRequest()
+                          .preco(new BigDecimal("-1.00"))
+                          .build()))
+              .build());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoParteProdutoEstiverAusente() throws Exception {
+      mockMvc
+          .perform(
+              multipart(PRODUTO_ID_URL, UUID.randomUUID())
+                  .with(
+                      multipartRequest -> {
+                        multipartRequest.setMethod("PUT");
+                        return multipartRequest;
+                      }))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoIdNaoForInvalido() throws Exception {
+      MockMultipartFile produtoPart =
+          criarProdutoPart(jsonToString(ProdutoMock.criarProdutoRequestPadrao()));
+
+      mockMvc
+          .perform(
+              multipart(PRODUTO_ID_URL, "id-invalido")
+                  .file(produtoPart)
+                  .with(
+                      multipartRequest -> {
+                        multipartRequest.setMethod("PUT");
+                        return multipartRequest;
+                      }))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.codeError").value(CodeError.DADOS_INVALIDOS.name()));
+    }
+
+    @Test
+    void deveRetornarNotFoundQuandoProdutoNaoExistir() throws Exception {
+      UUID id = UUID.randomUUID();
+      ProdutoRequest request = ProdutoMock.criarProdutoRequestPadrao();
+      doThrow(new NaoEncontradoException("Produto não encontrado"))
+          .when(produtoService)
+          .atualizarProduto(eq(id), eq(null), eq(request));
+
+      mockMvc
+          .perform(
+              multipart(PRODUTO_ID_URL, id)
+                  .file(criarProdutoPart(jsonToString(request)))
+                  .with(
+                      multipartRequest -> {
+                        multipartRequest.setMethod("PUT");
+                        return multipartRequest;
+                      }))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
+    }
+  }
+
+  @Nested
+  class AlterarDisponibilidadeTests {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void deveAlterarDisponibilidadeSemConteudo(boolean disponivel) throws Exception {
+      UUID id = UUID.randomUUID();
+      ProdutoDisponibilidadeRequest request = new ProdutoDisponibilidadeRequest(disponivel);
+
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, id)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(jsonToString(request)))
+          .andExpect(status().isNoContent())
+          .andExpect(content().string(""));
+
+      verify(produtoService).alterarDisponibilidade(id, request);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "{\"disponivel\":null}"})
+    void deveRetornarBadRequestQuandoDisponibilidadeAusenteOuNula(String body) throws Exception {
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, UUID.randomUUID())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(body))
+          .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deveRetornarBadRequestQuandoCorpoForInvalido() throws Exception {
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, UUID.randomUUID())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{"))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.codeError").value(CodeError.DADOS_INVALIDOS.name()));
+      ;
+    }
+
+    @Test
+    void deveRetornarNotFoundQuandoProdutoNaoExistir() throws Exception {
+      UUID id = UUID.randomUUID();
+      ProdutoDisponibilidadeRequest request = new ProdutoDisponibilidadeRequest(false);
+
+      doThrow(new NaoEncontradoException("Produto não encontrado"))
+          .when(produtoService)
+          .alterarDisponibilidade(eq(id), any());
+
+      mockMvc
+          .perform(
+              patch(DISPONIBILIDADE_URL, id)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(jsonToString(request)))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.codeError").value(CodeError.NAO_ENCONTRADO.name()));
+    }
+  }
+
+  private MockMultipartFile criarProdutoPart(String content) {
+    return new MockMultipartFile(
+        "produto",
+        null,
+        MediaType.APPLICATION_JSON_VALUE,
+        content.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private String jsonToString(Object object) {
+    try {
+      return objectMapper.writeValueAsString(object);
+    } catch (Exception e) {
+      throw new RuntimeException("Erro ao converter objeto para JSON", e);
+    }
+  }
+}

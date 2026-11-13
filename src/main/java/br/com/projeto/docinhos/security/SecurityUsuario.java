@@ -1,6 +1,6 @@
 package br.com.projeto.docinhos.security;
 
-import br.com.projeto.docinhos.model.Usuario;
+import br.com.projeto.docinhos.domain.model.Usuario;
 import java.util.Collection;
 import java.util.List;
 import org.jspecify.annotations.Nullable;

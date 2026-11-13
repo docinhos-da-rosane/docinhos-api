@@ -1,7 +1,7 @@
 package br.com.projeto.docinhos.security;
 
-import br.com.projeto.docinhos.exception.NaoEncontradoException;
-import br.com.projeto.docinhos.repository.UsuarioRepository;
+import br.com.projeto.docinhos.domain.repository.UsuarioRepository;
+import br.com.projeto.docinhos.shared.exception.NaoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
