@@ -22,7 +22,7 @@ public interface ProdutoPublicoController {
   @ApiResponse(
       responseCode = "200",
       description = "Página de produtos retornada com sucesso",
-      content = @Content(schema = @Schema(implementation = PageResponse.class)))
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "500",
       description = "Falha ao carregar os produtos",
