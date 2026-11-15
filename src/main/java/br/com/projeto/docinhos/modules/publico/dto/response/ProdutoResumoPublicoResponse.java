@@ -13,7 +13,7 @@ public record ProdutoResumoPublicoResponse(
     @Schema(description = "Nome do produto", example = "Brigadeiro") String nome,
     @Schema(description = "Nome da categoria", example = "Tradicional") String categoria,
     @Schema(
-            description = "URL da miniatura pública",
+            description = "URL da imagem menor pública",
             example =
                 "https://res.cloudinary.com/demo/image/upload/c_lfill,h_450,w_800/produto.jpg")
         String imagemMenorUrl,

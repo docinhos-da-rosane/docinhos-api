@@ -133,7 +133,7 @@ public interface ProdutoController {
   @ApiResponse(
       responseCode = "200",
       description = "Lista de produtos retornada com sucesso",
-      content = @Content(schema = @Schema(implementation = PageResponse.class)))
+      useReturnTypeSchema = true)
   @ApiResponse(
       responseCode = "500",
       description = "Erro interno ao consultar os produtos",
