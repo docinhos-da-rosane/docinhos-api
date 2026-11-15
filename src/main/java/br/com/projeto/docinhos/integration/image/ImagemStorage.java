@@ -9,6 +9,8 @@ public interface ImagemStorage {
 
   String gerarUrl(String idArmazenamento, int dimensao, boolean recortar);
 
+  String gerarUrl(String idArmazenamento, int largura, int altura, boolean recortar);
+
   void deletar(String idArmazenamento);
 
   void restaurar(String idArmazenamento);
