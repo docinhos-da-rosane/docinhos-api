@@ -10,6 +10,8 @@ import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoDetalhadoRespon
 import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoPorcaoResponse;
 import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoResponse;
 import br.com.projeto.docinhos.modules.admin.dto.response.ProdutoResumoResponse;
+import br.com.projeto.docinhos.modules.publico.dto.response.ProdutoPorcaoPublicoResponse;
+import br.com.projeto.docinhos.modules.publico.dto.response.ProdutoResumoPublicoResponse;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -46,6 +48,28 @@ public class ProdutoMock {
         .build();
   }
 
+  public static ProdutoResumoPublicoResponse criarProdutoResumoPublicoResponsePadrao() {
+    return criarProdutoResumoPublicoResponsePadrao(true);
+  }
+
+  public static ProdutoResumoPublicoResponse criarProdutoResumoPublicoResponsePadrao(
+      boolean disponivel) {
+    return ProdutoResumoPublicoResponse.builder()
+        .id(UUID.randomUUID())
+        .nome("Brigadeiro")
+        .categoria("Tradicional")
+        .imagemMenorUrl(
+            "https://res.cloudinary.com/demo/image/upload/c_lfill,h_450,w_800/produto.jpg")
+        .disponivel(disponivel)
+        .porcaoMenorPreco(
+            ProdutoPorcaoPublicoResponse.builder()
+                .id(UUID.randomUUID())
+                .preco(new BigDecimal("45.00"))
+                .quantidade(15)
+                .build())
+        .build();
+  }
+
   public static ProdutoResponse criarProdutoResponsePadrao() {
     return ProdutoResponse.builder()
         .id(UUID.randomUUID())
@@ -72,10 +96,23 @@ public class ProdutoMock {
         .build();
   }
 
+  public static Produto criarProdutoPadrao(
+      String nome, boolean disponivel, List<ProdutoPorcao> porcoes) {
+    Produto produto = criarProdutoPadrao(nome, CategoriaMock.criarCategoriaPadrao(), porcoes);
+    produto.setDisponivel(disponivel);
+
+    return produto;
+  }
+
   public static Produto criarProdutoPadrao(Categoria categoria) {
-    Produto produto = new Produto("Produto 1", "Descrição do Produto 1", categoria);
+    return criarProdutoPadrao("Produto 1", categoria, List.of(criarProdutoPorcaoPadrao()));
+  }
+
+  public static Produto criarProdutoPadrao(
+      String nome, Categoria categoria, List<ProdutoPorcao> porcoes) {
+    Produto produto = new Produto(nome, "Descrição do Produto 1", categoria);
     produto.setId(UUID.randomUUID());
-    produto.adicionarPorcoes(List.of(criarProdutoPorcaoPadrao()));
+    produto.adicionarPorcoes(porcoes);
     produto.adicionarImagem(criarProdutoImagemPadrao());
     return produto;
   }

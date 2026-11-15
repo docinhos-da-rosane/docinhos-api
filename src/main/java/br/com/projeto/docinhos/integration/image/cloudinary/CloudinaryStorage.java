@@ -54,9 +54,14 @@ public class CloudinaryStorage implements ImagemStorage {
 
   @Override
   public String gerarUrl(String idArmazenamento, int dimensao, boolean recortar) {
+    return gerarUrl(idArmazenamento, dimensao, dimensao, recortar);
+  }
+
+  @Override
+  public String gerarUrl(String idArmazenamento, int largura, int altura, boolean recortar) {
     return cloudinary
         .url()
-        .transformation(criarTransformacao(dimensao, recortar))
+        .transformation(criarTransformacao(largura, altura, recortar))
         .secure(true)
         .generate(idArmazenamento);
   }
@@ -136,8 +141,8 @@ public class CloudinaryStorage implements ImagemStorage {
         .quality(QUALIDADE_IMAGEM);
   }
 
-  private Transformation<?> criarTransformacao(int dimensao, boolean recortar) {
-    Transformation<?> transformation = new Transformation<>().width(dimensao).height(dimensao);
+  private Transformation<?> criarTransformacao(int largura, int altura, boolean recortar) {
+    Transformation<?> transformation = new Transformation<>().width(largura).height(altura);
 
     return recortar ? transformation.gravity("center").crop("lfill") : transformation.crop("limit");
   }
